@@ -1,0 +1,25 @@
+js/dragdrop.js
+  5289a5c1e7c16c16 54,91
+newtab.css
+  5289a5c1e7c16c16 556
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "a135f5b72a81d37c4dc87e6fd63875829bbb0f53",
+  "prompts": {
+    "5289a5c1e7c16c16": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9607a33e-9983-420b-9f56-5fa692e0eca2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}
