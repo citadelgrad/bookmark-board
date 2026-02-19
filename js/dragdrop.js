@@ -51,7 +51,7 @@ BookmarkBoard.DragDrop = (function () {
    * @returns {number}
    */
   function _dropIndex(grid, clientX, clientY) {
-    const cards = [...grid.querySelectorAll('.bookmark-card:not(.dragging)')];
+    const cards = [...grid.querySelectorAll('.bookmark-card:not(.dragging):not(.drag-placeholder)')];
     for (let i = 0; i < cards.length; i++) {
       const rect = cards[i].getBoundingClientRect();
       const midX = rect.left + rect.width / 2;
@@ -88,7 +88,7 @@ BookmarkBoard.DragDrop = (function () {
       _placeholder.className = 'bookmark-card drag-placeholder';
     }
 
-    const cards = [...grid.querySelectorAll('.bookmark-card:not(.drag-placeholder)')];
+    const cards = [...grid.querySelectorAll('.bookmark-card:not(.dragging):not(.drag-placeholder)')];
     if (index >= cards.length) {
       grid.appendChild(_placeholder);
     } else {
