@@ -1,0 +1,27 @@
+LICENSE-MIT
+  5289a5c1e7c16c16 1-21
+README.md
+  5289a5c1e7c16c16 1-129
+LICENSE-APACHE
+  5289a5c1e7c16c16 1-199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "c21d1f40e7ea61d5c93cf94e6ead1f9f950d1f51",
+  "prompts": {
+    "5289a5c1e7c16c16": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9607a33e-9983-420b-9f56-5fa692e0eca2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 352,
+      "total_deletions": 3,
+      "accepted_lines": 352,
+      "overriden_lines": 0
+    }
+  }
+}
