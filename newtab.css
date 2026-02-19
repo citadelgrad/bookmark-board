@@ -1,0 +1,1480 @@
+/* ===========================
+   CSS Custom Properties
+   =========================== */
+:root {
+  --sidebar-left-width: 240px;
+  --sidebar-right-width: 280px;
+  --sidebar-bg: #1a2332;
+  --sidebar-text: #c8d6e8;
+  --sidebar-hover: #243040;
+  --sidebar-active: #2d4a6b;
+  --sidebar-accent: #4a9eff;
+  --main-bg: #f0f2f5;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --text-primary: #1a202c;
+  --text-secondary: #718096;
+  --text-muted: #a0aec0;
+  --collection-header-bg: #edf2f7;
+  --right-sidebar-bg: #f8fafc;
+  --right-sidebar-border: #e2e8f0;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ===========================
+   Reset & Base
+   =========================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--main-bg);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ===========================
+   Three-Panel Layout
+   =========================== */
+#app {
+  display: grid;
+  grid-template-columns: var(--sidebar-left-width) 1fr var(--sidebar-right-width);
+  grid-template-rows: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===========================
+   Sidebar — Shared
+   =========================== */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  flex-shrink: 0;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-footer {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ===========================
+   Left Sidebar — Spaces
+   =========================== */
+.sidebar-left {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+}
+
+.app-logo {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #ffffff;
+}
+
+.spaces-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.spaces-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.spaces-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+}
+
+.space-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  border-radius: 0;
+  cursor: pointer;
+  color: var(--sidebar-text);
+  font-size: 13.5px;
+  transition: background 0.12s;
+  user-select: none;
+}
+
+.space-item:hover {
+  background: var(--sidebar-hover);
+}
+
+.space-item.active {
+  background: var(--sidebar-active);
+  color: #ffffff;
+}
+
+.space-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--sidebar-accent);
+  border-radius: 0 2px 2px 0;
+}
+
+.space-item {
+  position: relative;
+}
+
+.space-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.space-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-icon {
+  color: var(--sidebar-text);
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s, color 0.12s;
+}
+
+.btn-icon:hover {
+  background: var(--sidebar-hover);
+  color: #ffffff;
+}
+
+/* ===========================
+   Main Area — Collections
+   =========================== */
+.main-area {
+  background: var(--main-bg);
+  overflow-y: auto;
+  padding: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: #c8d6e8 transparent;
+}
+
+.main-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.main-area::-webkit-scrollbar-thumb {
+  background: #c8d6e8;
+  border-radius: 3px;
+}
+
+.collections-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===========================
+   Collection Section
+   =========================== */
+.collection {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.collection-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--collection-header-bg);
+  border-bottom: 1px solid var(--card-border);
+  user-select: none;
+}
+
+.collection-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.collection-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: #e2e8f0;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+.collection-toggle {
+  font-size: 18px;
+  color: var(--text-muted);
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s;
+}
+
+.collection-toggle:hover {
+  background: var(--card-border);
+  color: var(--text-secondary);
+}
+
+.collection-body {
+  padding: 12px;
+}
+
+.bookmark-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+/* ===========================
+   Bookmark Card
+   =========================== */
+.bookmark-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.bookmark-card:hover {
+  background: var(--main-bg);
+  border-color: var(--card-border);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.bookmark-card:hover .bookmark-url {
+  opacity: 1;
+}
+
+.bookmark-favicon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.bookmark-title {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.bookmark-url {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.15s;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Drag-over highlight */
+.bookmark-card.drag-over {
+  background: #ebf4ff;
+  border-color: var(--sidebar-accent);
+}
+
+/* ===========================
+   Right Sidebar — Open Tabs
+   =========================== */
+.sidebar-right {
+  background: var(--right-sidebar-bg);
+  border-left: 1px solid var(--right-sidebar-border);
+  color: var(--text-primary);
+}
+
+.sidebar-right .sidebar-header {
+  border-bottom: 1px solid var(--right-sidebar-border);
+}
+
+.sidebar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabs-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #c8d6e8 transparent;
+}
+
+.tabs-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tabs-list::-webkit-scrollbar-thumb {
+  background: #c8d6e8;
+  border-radius: 2px;
+}
+
+.tabs-window-group {
+  margin-bottom: 4px;
+}
+
+/* Window group header: toggle + label + count + save button */
+.tabs-window-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
+  background: var(--right-sidebar-bg);
+  border-bottom: 1px solid var(--right-sidebar-border);
+  user-select: none;
+}
+
+.tabs-window-toggle {
+  flex-shrink: 0;
+  font-size: 9px;
+  color: var(--text-muted);
+  padding: 2px 4px;
+  line-height: 1;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+
+.tabs-window-toggle:hover {
+  background: #e2e8f0;
+  color: var(--text-primary);
+}
+
+.tabs-window-label {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.tabs-window-count {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  background: #e2e8f0;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+.tabs-save-session-btn {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--sidebar-accent);
+  padding: 2px 8px;
+  border: 1px solid var(--sidebar-accent);
+  border-radius: 10px;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+
+.tabs-save-session-btn:hover {
+  background: var(--sidebar-accent);
+  color: #fff;
+}
+
+/* Collapsible body */
+.tabs-window-body {
+  overflow: hidden;
+}
+
+.tabs-window-body.collapsed {
+  display: none;
+}
+
+/* Individual tab row */
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.tab-item:hover {
+  background: #edf2f7;
+}
+
+.tab-item.active-tab {
+  background: #ebf4ff;
+}
+
+.tab-item.dragging {
+  opacity: 0.5;
+}
+
+.tab-favicon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  object-fit: contain;
+}
+
+.tab-title {
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.tab-item.active-tab .tab-title {
+  color: #2b6cb0;
+  font-weight: 500;
+}
+
+/* Close (×) button on each tab row */
+.tab-close-btn {
+  flex-shrink: 0;
+  display: none;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-muted);
+  padding: 1px 4px;
+  border-radius: 3px;
+  transition: background 0.1s, color 0.1s;
+}
+
+.tab-item:hover .tab-close-btn {
+  display: block;
+}
+
+.tab-close-btn:hover {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+/* ===========================
+   Drag & Drop States
+   =========================== */
+
+/* Dragged card becomes semi-transparent */
+.bookmark-card.dragging {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Collection grid highlighted as a drop target */
+.bookmark-grid.drop-target {
+  border: 2px dashed #4db6ac;
+  border-radius: var(--radius-md);
+  background: rgba(77, 182, 172, 0.05);
+  min-height: 60px;
+}
+
+/* Collection header highlighted (for drops onto collapsed collections) */
+.collection-header.drop-target {
+  outline: 2px dashed #4db6ac;
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+  background: rgba(77, 182, 172, 0.08);
+}
+
+/* Placeholder card shown while dragging to indicate insertion point */
+.bookmark-card.drag-placeholder {
+  opacity: 0;
+  border: 2px dashed #4db6ac;
+  background: rgba(77, 182, 172, 0.08);
+  pointer-events: none;
+  min-width: 140px;
+  min-height: 90px;
+}
+
+/* Legacy: whole-collection drop target (kept for backward compat) */
+.collection.drop-target {
+  outline: 2px dashed var(--sidebar-accent);
+  outline-offset: -2px;
+}
+
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* ===========================
+   Utility / States
+   =========================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  gap: 8px;
+}
+
+.empty-state-icon {
+  font-size: 32px;
+  opacity: 0.4;
+}
+
+/* ===========================
+   Main top bar (search + tags)
+   =========================== */
+.main-topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+/* ===========================
+   Search
+   =========================== */
+.search-wrapper {
+  display: flex;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 480px;
+  padding: 8px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  font-family: var(--font);
+  font-size: 13.5px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.search-input:focus {
+  border-color: var(--sidebar-accent);
+  box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+}
+
+/* ===========================
+   Tag bar
+   =========================== */
+.tag-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-bar-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.tag-chip {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-family: var(--font);
+  background: #e2e8f0;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.tag-chip:hover {
+  background: #cbd5e0;
+  color: var(--text-primary);
+}
+
+.tag-chip.active {
+  background: var(--sidebar-accent);
+  color: #fff;
+  border-color: var(--sidebar-accent);
+}
+
+.tag-chip-clear {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--card-border);
+}
+
+.tag-chip-clear:hover {
+  background: #fed7d7;
+  color: #c53030;
+  border-color: #feb2b2;
+}
+
+/* ===========================
+   Collection tag chips (inside header)
+   =========================== */
+.collection-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.collection-tag-chip {
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  background: #bee3f8;
+  color: #2b6cb0;
+}
+
+/* ===========================
+   Collections toolbar
+   =========================== */
+.collections-toolbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.btn-add-collection {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--sidebar-accent);
+  border: 1px dashed var(--sidebar-accent);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.btn-add-collection:hover {
+  background: #ebf4ff;
+  color: #2b6cb0;
+}
+
+/* ===========================
+   Bookmark card extras
+   =========================== */
+.bookmark-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 1;
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.12s;
+  cursor: pointer;
+}
+
+.bookmark-card:hover .bookmark-remove {
+  opacity: 1;
+}
+
+.bookmark-remove:hover {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.bookmark-card-empty {
+  grid-column: 1 / -1;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  border: 1px dashed var(--card-border);
+  border-radius: var(--radius-md);
+}
+
+/* ===========================
+   Inline rename input
+   =========================== */
+.collection-name-input {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--sidebar-accent);
+  outline: none;
+  font-family: var(--font);
+  padding: 0;
+  width: 0;
+  min-width: 80px;
+}
+
+/* ===========================
+   Context menu
+   =========================== */
+.context-menu {
+  position: fixed;
+  z-index: 9999;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  min-width: 160px;
+  overflow: hidden;
+  padding: 4px 0;
+}
+
+.context-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--text-primary);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.context-menu-item:hover {
+  background: var(--main-bg);
+}
+
+/* ===========================
+   Add Space button override (sidebar footer)
+   =========================== */
+#btn-add-space {
+  font-size: 13px;
+  color: var(--sidebar-text);
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+}
+
+#btn-add-space:hover {
+  background: var(--sidebar-hover);
+  color: #ffffff;
+}
+
+/* ===========================
+   Import button (sidebar footer)
+   =========================== */
+.btn-icon--import {
+  margin-top: 4px;
+  opacity: 0.75;
+}
+
+.btn-icon--import:hover {
+  background: var(--sidebar-hover);
+  color: #ffffff;
+  opacity: 1;
+}
+
+/* ===========================
+   Import Modal
+   =========================== */
+.import-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  animation: import-fade-in 0.15s ease;
+}
+
+@keyframes import-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.import-modal-dialog {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  display: flex;
+  flex-direction: column;
+  animation: import-slide-up 0.15s ease;
+}
+
+@keyframes import-slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+.import-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+}
+
+.import-modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.import-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--text-muted);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition: background 0.1s, color 0.1s;
+}
+
+.import-modal-close:hover {
+  background: var(--collection-header-bg);
+  color: var(--text-primary);
+}
+
+.import-modal-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.import-modal-desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.import-modal-status {
+  font-size: 0.875rem;
+  color: var(--sidebar-accent);
+  min-height: 1.25em;
+  font-weight: 500;
+}
+
+.import-modal-footer {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 20px;
+  justify-content: flex-end;
+}
+
+.import-modal-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.1s, opacity 0.1s;
+}
+
+.import-modal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.import-modal-btn--primary {
+  background: var(--sidebar-accent);
+  color: #ffffff;
+  border-color: var(--sidebar-accent);
+}
+
+.import-modal-btn--primary:hover:not(:disabled) {
+  background: #2d8ae8;
+  border-color: #2d8ae8;
+}
+
+.import-modal-btn--secondary {
+  background: var(--collection-header-bg);
+  color: var(--text-primary);
+  border-color: var(--card-border);
+}
+
+.import-modal-btn--secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+/* ===========================
+   AI Toolbar
+   =========================== */
+
+.ai-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+.ai-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--sidebar-accent);
+  background: var(--sidebar-accent);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.ai-toolbar-btn:hover:not(:disabled) {
+  background: #2d8ae8;
+  border-color: #2d8ae8;
+}
+
+.ai-toolbar-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ai-toolbar-btn--ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.ai-toolbar-btn--ghost:hover:not(:disabled) {
+  background: var(--collection-header-bg);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+/* ===========================
+   AI Modals (shared base)
+   =========================== */
+
+.ai-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ai-modal-dialog {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  width: min(480px, 90vw);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+.ai-modal-dialog--wide {
+  width: min(640px, 94vw);
+}
+
+.ai-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ai-modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.ai-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.ai-modal-close:hover {
+  background: var(--collection-header-bg);
+  color: var(--text-primary);
+}
+
+.ai-modal-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ai-modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* ===========================
+   AI Settings Modal
+   =========================== */
+
+.ai-modal-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.ai-modal-select,
+.ai-modal-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  box-sizing: border-box;
+}
+
+.ai-modal-select:focus,
+.ai-modal-input:focus {
+  outline: none;
+  border-color: var(--sidebar-accent);
+  box-shadow: 0 0 0 2px rgba(58, 142, 235, 0.2);
+}
+
+.ai-modal-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.ai-modal-test-status {
+  font-size: 0.8125rem;
+  min-height: 1.2em;
+  transition: color 0.15s;
+}
+
+.ai-modal-test-status[data-state='ok']    { color: #22c55e; }
+.ai-modal-test-status[data-state='error'] { color: #ef4444; }
+.ai-modal-test-status[data-state='pending'] { color: var(--text-secondary); }
+
+/* ===========================
+   AI Organize Modal
+   =========================== */
+
+.ai-modal-status {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 1.4em;
+}
+
+/* Simple CSS spinner */
+.ai-modal-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--sidebar-accent);
+  border-radius: 50%;
+  animation: ai-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ai-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ai-modal-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ai-modal-preview-title {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.ai-modal-preview-group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.ai-modal-preview-group-name {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--collection-header-bg);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.ai-modal-preview-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.ai-modal-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.ai-modal-preview-item:hover {
+  background: var(--collection-header-bg);
+}
+
+.ai-modal-preview-favicon {
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.ai-modal-preview-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* ===========================
+   Shared AI modal buttons
+   =========================== */
+
+.ai-modal-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ai-modal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-modal-btn--primary {
+  background: var(--sidebar-accent);
+  color: #ffffff;
+}
+
+.ai-modal-btn--primary:hover:not(:disabled) {
+  background: #2d8ae8;
+}
+
+.ai-modal-btn--secondary {
+  background: var(--collection-header-bg);
+  color: var(--text-primary);
+}
+
+.ai-modal-btn--secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+/* ===========================
+   Dark Mode — CSS Variables
+   =========================== */
+body.dark {
+  --sidebar-bg: #0d1117;
+  --sidebar-text: #8b9ab0;
+  --sidebar-hover: #161b22;
+  --sidebar-active: #1c3a5e;
+  --sidebar-accent: #58a6ff;
+  --main-bg: #0d1117;
+  --card-bg: #161b22;
+  --card-border: #21262d;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.4);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b9ab0;
+  --text-muted: #484f58;
+  --collection-header-bg: #161b22;
+  --right-sidebar-bg: #0d1117;
+  --right-sidebar-border: #21262d;
+}
+
+body.dark .search-input {
+  background: #161b22;
+  color: #e6edf3;
+  border-color: #21262d;
+}
+
+body.dark .tag-chip {
+  background: #21262d;
+  color: #8b9ab0;
+}
+
+body.dark .tag-chip:hover {
+  background: #30363d;
+  color: #e6edf3;
+}
+
+body.dark .tab-item:hover {
+  background: #161b22;
+}
+
+body.dark .tab-item.active-tab {
+  background: #1c3a5e;
+}
+
+body.dark .context-menu {
+  background: #161b22;
+  border-color: #30363d;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+body.dark .context-menu-item:hover {
+  background: #21262d;
+}
+
+body.dark .collection-count {
+  background: #21262d;
+  color: #8b9ab0;
+}
+
+body.dark .collection-tag-chip {
+  background: #1c3a5e;
+  color: #58a6ff;
+}
+
+body.dark .tabs-window-count {
+  background: #21262d;
+  color: #8b9ab0;
+}
+
+body.dark .bookmark-card-empty {
+  border-color: #21262d;
+  color: #484f58;
+}
+
+body.dark .btn-add-collection {
+  border-color: #58a6ff;
+  color: #58a6ff;
+}
+
+body.dark .btn-add-collection:hover {
+  background: #1c3a5e;
+  color: #a8d8ff;
+}
+
+/* ===========================
+   Theme Toggle Button
+   =========================== */
+.theme-toggle-btn {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--collection-header-bg);
+  color: var(--text-primary);
+}
+
+/* ===========================
+   Top Bar row (search + theme toggle)
+   =========================== */
+.topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ===========================
+   Smooth Collapse Transition
+   =========================== */
+.collection-body {
+  overflow: hidden;
+  transition: max-height 0.22s ease, opacity 0.18s ease;
+  max-height: 2000px;
+  opacity: 1;
+}
+
+.collection.collapsed .collection-body {
+  display: block; /* override the display:none so transition works */
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ===========================
+   Card Hover Lift
+   =========================== */
+.bookmark-card {
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.15s, transform 0.15s;
+}
+
+.bookmark-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* ===========================
+   Favicon Fallback — Letter Avatar
+   =========================== */
+.favicon-fallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* ===========================
+   Bookmark Card — Inline Title Edit
+   =========================== */
+.bookmark-title-input {
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--text-primary);
+  background: var(--card-bg);
+  border: 1px solid var(--sidebar-accent);
+  border-radius: 4px;
+  padding: 2px 5px;
+  text-align: center;
+  width: 100%;
+  outline: none;
+}
+
+/* ===========================
+   Loading Skeleton
+   =========================== */
+.skeleton {
+  background: linear-gradient(90deg, var(--card-border) 25%, var(--collection-header-bg) 50%, var(--card-border) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+.skeleton-collection {
+  height: 44px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+}

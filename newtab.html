@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>New Tab</title>
+    <link rel="stylesheet" href="newtab.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Left sidebar: spaces navigation -->
+      <aside id="sidebar-left" class="sidebar sidebar-left">
+        <div class="sidebar-header">
+          <span class="app-logo">Bookmark Board</span>
+        </div>
+        <nav id="spaces-list" class="spaces-list">
+          <!-- Space items rendered by render.js -->
+        </nav>
+        <div class="sidebar-footer">
+          <button id="btn-add-space" class="btn-icon" title="Add space">+ Add Space</button>
+          <button id="btn-import" class="btn-icon btn-icon--import" title="Import bookmarks">&#8659; Import</button>
+        </div>
+      </aside>
+
+      <!-- Main area: tag bar + search + collections -->
+      <main id="main-area" class="main-area">
+        <div class="main-topbar">
+          <div id="tag-bar" class="tag-bar" style="display:none">
+            <!-- Tag filter chips rendered by render.js -->
+          </div>
+          <div class="topbar-row">
+            <div id="search-wrapper" class="search-wrapper" style="flex:1">
+              <input id="search-input" class="search-input" type="search"
+                     placeholder="Search bookmarks… (press / to focus)" autocomplete="off" />
+            </div>
+            <button id="btn-theme-toggle" class="theme-toggle-btn" title="Toggle dark mode" aria-label="Toggle dark mode">&#9788;</button>
+          </div>
+        </div>
+        <div id="collections-container" class="collections-container">
+          <!-- Collections rendered by render.js -->
+        </div>
+      </main>
+
+      <!-- Right sidebar: open tabs -->
+      <aside id="sidebar-right" class="sidebar sidebar-right">
+        <div class="sidebar-header">
+          <span class="sidebar-title">Open Tabs</span>
+        </div>
+        <div id="tabs-list" class="tabs-list">
+          <!-- Tab entries rendered by js/tabs.js -->
+        </div>
+      </aside>
+    </div>
+
+    <!-- JS modules loaded in dependency order, all add to BookmarkBoard namespace -->
+    <script src="js/utils.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/bookmarks.js"></script>
+    <script src="js/tabs.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/import.js"></script>
+    <script src="js/dragdrop.js"></script>
+    <script src="js/ai-grouping.js"></script>
+    <script src="newtab.js"></script>
+  </body>
+</html>

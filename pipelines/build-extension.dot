@@ -1,0 +1,492 @@
+digraph BuildExtension {
+    label="Build Bookmark Board Chrome Extension"
+    goal="Build a Toby-like bookmark manager as a Chrome extension with three-panel layout, bookmark import, open tabs sidebar, and drag-and-drop."
+    model="sonnet"
+
+    start [shape="Mdiamond", label="Start"]
+    done  [shape="Msquare",  label="Done"]
+
+    // ─── Phase 1: Foundation ───────────────────────────────────
+
+    investigate_structure [
+        shape="box"
+        label="Investigate Chrome MV3"
+        allowed_tools="Read,Grep,Glob,WebFetch,WebSearch"
+        prompt="Research Chrome Manifest V3 extension structure for a new-tab override extension. Document:
+1. Required manifest.json fields for permissions: bookmarks, tabs, storage, favicon
+2. How chrome_url_overrides works for newtab
+3. How to use the /_favicon/ API (chrome://favicon/ replacement in MV3)
+4. chrome.storage.local API usage patterns
+5. chrome.bookmarks.getSubTree API for reading Bookmark Bar (node ID '1')
+6. chrome.tabs query/event listener APIs
+
+Write findings to .attractor/mv3-research.md"
+    ]
+
+    scaffold [
+        shape="box"
+        label="Create Extension Scaffold"
+        prompt="Read .attractor/mv3-research.md for context.
+
+Create the Chrome extension scaffold in /Volumes/qwiizlab/projects/bookmark_board/:
+
+1. manifest.json — Manifest V3 with:
+   - name: 'Bookmark Board'
+   - permissions: ['bookmarks', 'tabs', 'storage']
+   - chrome_url_overrides: { newtab: 'newtab.html' }
+   - icons: reference icons/icon16.png, icon48.png, icon128.png
+
+2. newtab.html — Shell HTML with three-panel CSS grid:
+   - Left sidebar (spaces nav, 240px)
+   - Main area (collections grid, flexible)
+   - Right sidebar (open tabs, 280px)
+   - Link to newtab.css and all JS modules
+
+3. newtab.css — Complete styles for:
+   - Three-panel grid layout (100vh, no scroll on body)
+   - Left sidebar: dark bg, space list items, active state
+   - Main area: light bg, collection cards as sections, bookmark cards with large favicons
+   - Right sidebar: tab entries grouped by window
+   - Bookmark card: 32px favicon, title, subtle URL on hover, rounded corners, shadow
+   - Collection: header with name + collapse toggle, card grid inside
+   - Scrollable panels independently
+   - Clean modern look inspired by Toby (teal/dark sidebar, white main area)
+
+4. js/utils.js — Helper functions:
+   - uid() — generate random IDs like 'sp_abc123'
+   - faviconUrl(pageUrl) — return chrome-extension favicon URL using /_favicon/?pageUrl=URL&size=32
+   - debounce(fn, ms)
+
+5. icons/ — Create simple colored SVG-based PNG placeholders (or use a single-color square as placeholder). Create icon16.png, icon48.png, icon128.png.
+
+6. newtab.js — Empty entry point that will import other modules.
+
+Use port 0 (no server needed — this is a chrome extension loaded from disk).
+Do NOT use ES module imports — use plain script tags in order in newtab.html since MV3 content security policy can be restrictive. All JS files should add to a global BookmarkBoard namespace."
+    ]
+
+    verify_scaffold [
+        shape="diamond"
+        label="Verify Scaffold"
+        node_type="conditional"
+        prompt="Read the following files and verify they exist and are well-formed:
+- /Volumes/qwiizlab/projects/bookmark_board/manifest.json (valid JSON, has correct permissions)
+- /Volumes/qwiizlab/projects/bookmark_board/newtab.html (references CSS and all JS files)
+- /Volumes/qwiizlab/projects/bookmark_board/newtab.css (has three-panel grid, bookmark card styles)
+- /Volumes/qwiizlab/projects/bookmark_board/js/utils.js (has uid, faviconUrl, debounce functions)
+
+Check that:
+1. manifest.json is valid MV3 with bookmarks+tabs+storage permissions
+2. newtab.html loads CSS and JS in correct order (utils.js first)
+3. CSS has a proper three-column grid layout
+4. All files reference a shared BookmarkBoard namespace (not ES modules)
+
+Respond PASS or FAIL on the last line."
+    ]
+
+    fix_scaffold [
+        shape="box"
+        label="Fix Scaffold Issues"
+        prompt="Read .attractor/scaffold-issues.md and fix the problems identified in the scaffold verification step. Re-read each file after fixing to confirm."
+        retry_target="verify_scaffold"
+    ]
+
+    // ─── Phase 2: Data Store ───────────────────────────────────
+
+    build_store [
+        shape="box"
+        label="Build Data Store"
+        prompt="Create /Volumes/qwiizlab/projects/bookmark_board/js/store.js
+
+This is the data persistence layer using chrome.storage.local. Add to the BookmarkBoard namespace.
+
+Data model:
+- spaces: [{ id, name, order, collectionIds }]
+- collections: [{ id, spaceId, name, tags, order, collapsed, bookmarks }]
+- bookmarks (inside collections): [{ id, title, url, order }]
+- tags: string[]
+- settings: { theme: 'light' }
+
+Implement these async functions on BookmarkBoard.Store:
+
+Space CRUD:
+- init() — load all data from storage; if empty, seed with default space 'My Collections'
+- getSpaces() — return all spaces sorted by order
+- addSpace(name) — create space, return it
+- renameSpace(id, name)
+- removeSpace(id) — also remove its collections
+- reorderSpaces(orderedIds)
+
+Collection CRUD:
+- getCollections(spaceId) — return collections for a space, sorted by order
+- addCollection(spaceId, name) — create collection, return it
+- renameCollection(id, name)
+- removeCollection(id) — also update parent space
+- toggleCollapse(id)
+- reorderCollections(spaceId, orderedIds)
+- setCollectionTags(id, tags)
+
+Bookmark CRUD:
+- addBookmark(collectionId, { title, url }) — add to end, return bookmark
+- removeBookmark(collectionId, bookmarkId)
+- moveBookmark(fromCollectionId, toCollectionId, bookmarkId, newIndex)
+- reorderBookmarks(collectionId, orderedIds)
+
+Tag CRUD:
+- getTags()
+- addTag(name)
+- removeTag(name)
+
+Internal:
+- _save() — persist entire state to chrome.storage.local
+- _load() — read from chrome.storage.local
+
+All functions should be async. Use a single _save() call pattern — load full state into memory, mutate, then save back. This avoids race conditions."
+    ]
+
+    // ─── Phase 3: Rendering ───────────────────────────────────
+
+    build_render [
+        shape="box"
+        label="Build Renderer"
+        prompt="Create /Volumes/qwiizlab/projects/bookmark_board/js/render.js
+
+This renders the entire UI. Add to BookmarkBoard.Render namespace. It should read from BookmarkBoard.Store and update the DOM.
+
+Implement:
+
+1. renderSidebar() — Left panel:
+   - List all spaces with click handler to switch active space
+   - Active space highlighted with teal/accent color
+   - Each space has a 3-dot menu (rename, delete)
+   - '+ Add Space' button at bottom
+   - Use icons/emoji for visual interest (folder icon before space names)
+
+2. renderCollections(spaceId) — Main panel:
+   - Clear main area, render all collections for the active space
+   - Each collection is a section with:
+     - Header: collection name (editable on double-click), collapse/expand chevron, tag chips, 3-dot menu (rename, delete, add tags, open all tabs)
+     - Body: grid of bookmark cards (3-4 columns, responsive)
+   - Each bookmark card:
+     - Large favicon (32px) using BookmarkBoard.faviconUrl()
+     - Title text (truncated if long)
+     - URL shown subtly below or on hover
+     - Click opens URL in new tab
+     - Small X button to remove (visible on hover)
+   - '+ Add Collection' button at top
+   - If collection is collapsed, hide bookmark body
+
+3. renderTagBar() — Top of main area:
+   - Show all tags as clickable filter chips
+   - Active tag filter highlights the chip and hides non-matching collections
+   - 'Clear filter' option
+
+4. renderSearch() — Search input in top bar:
+   - On input, filter visible bookmarks across all collections by title/URL match
+   - Debounced (300ms)
+
+5. renderAll() — Orchestrator that calls all render functions
+
+6. Event delegation — Use event delegation on the three panels rather than per-element listeners.
+
+Also update newtab.js to:
+- Call BookmarkBoard.Store.init() on DOMContentLoaded
+- Then call BookmarkBoard.Render.renderAll()
+- Set up the active space (first space by default)
+
+Make sure newtab.html loads scripts in order: utils.js, store.js, render.js, then newtab.js last."
+    ]
+
+    verify_render [
+        shape="diamond"
+        label="Verify Core UI"
+        node_type="conditional"
+        prompt="Read all files in /Volumes/qwiizlab/projects/bookmark_board/ and verify:
+
+1. newtab.html loads scripts in correct order: utils.js, store.js, render.js, newtab.js
+2. js/store.js has all CRUD functions and seeds default data on init()
+3. js/render.js renders sidebar, collections, bookmark cards, tag bar, and search
+4. newtab.js initializes store and triggers first render
+5. newtab.css has styles for all rendered elements (bookmark cards, collection headers, sidebar items, tag chips)
+6. Event handlers are wired up (space click, collection actions, bookmark click/remove, search input)
+7. No ES module import/export syntax used (all via BookmarkBoard namespace)
+
+Respond PASS or FAIL on the last line."
+    ]
+
+    fix_render [
+        shape="box"
+        label="Fix Render Issues"
+        prompt="Read .attractor/render-issues.md and fix all problems found during render verification. Check each file after fixing."
+        retry_target="verify_render"
+    ]
+
+    // ─── Phase 4: Import ──────────────────────────────────────
+
+    build_import [
+        shape="box"
+        label="Build Bookmark Import"
+        prompt="Create /Volumes/qwiizlab/projects/bookmark_board/js/import.js
+
+Add to BookmarkBoard.Import namespace. This handles importing Chrome bookmarks into the app.
+
+Implement:
+
+1. importBookmarkBar() — Main import function:
+   - Use chrome.bookmarks.getSubTree('1') to get the Bookmark Bar tree
+   - For each FOLDER in the bookmark bar: create a Collection with the folder's name
+   - For each bookmark inside a folder: add as a bookmark in that collection
+   - For loose bookmarks (directly in bookmark bar, not in a folder): add to an 'Unsorted' collection
+   - Handle nested folders: flatten them (subfolder becomes its own collection, prefixed with parent name e.g. 'Dev > Tools')
+   - Skip duplicates: if a bookmark URL already exists in the target collection, skip it
+   - Add all new collections to the active space
+
+2. showImportModal() — UI for import:
+   - Show a modal/overlay with 'Import from Bookmark Bar' button
+   - Show progress: 'Importing... X bookmarks found'
+   - Show summary when done: 'Imported X collections with Y bookmarks'
+   - Close button
+
+3. Auto-import on first run:
+   - In BookmarkBoard.Store.init(), check for a 'hasImported' flag in settings
+   - If false, trigger showImportModal() after initial render
+   - Set 'hasImported' = true after successful import
+
+4. Manual re-import:
+   - Add an 'Import Bookmarks' option accessible from the UI (gear icon or menu)
+   - Incremental: only adds new bookmarks, doesn't duplicate existing URLs
+
+Update newtab.html to include import.js in the script loading order (after render.js, before newtab.js).
+Update newtab.js to check for first-run import after init."
+    ]
+
+    // ─── Phase 5: Open Tabs ──────────────────────────────────
+
+    build_tabs [
+        shape="box"
+        label="Build Open Tabs Sidebar"
+        prompt="Create /Volumes/qwiizlab/projects/bookmark_board/js/tabs.js
+
+Add to BookmarkBoard.Tabs namespace. This manages the right sidebar showing open browser tabs.
+
+Implement:
+
+1. loadTabs() — Query and render:
+   - Use chrome.tabs.query({}) to get all tabs
+   - Group tabs by windowId
+   - Sort windows by windowId (label as 'Window 1', 'Window 2', etc.)
+   - Render in right sidebar panel:
+     - Window header with collapse/expand toggle
+     - Each tab: favicon (16px), truncated title, small X to close tab
+     - Current tab highlighted
+   - Each tab entry should be draggable (for drag-and-drop into collections)
+
+2. setupListeners() — Live updates:
+   - chrome.tabs.onCreated → add tab to correct window group
+   - chrome.tabs.onRemoved → remove tab entry
+   - chrome.tabs.onUpdated → update title/favicon if changed
+   - chrome.tabs.onMoved → update order
+   - chrome.windows.onCreated → add new window group
+   - chrome.windows.onRemoved → remove window group
+   - Debounce re-renders to avoid flicker
+
+3. Tab actions:
+   - Click tab entry → chrome.tabs.update(tabId, {active:true}) + chrome.windows.update(windowId, {focused:true})
+   - Click X on tab → chrome.tabs.remove(tabId)
+   - 'Save Session' button per window → creates new collection from all tabs in that window using BookmarkBoard.Store.addCollection() and addBookmark()
+
+4. Exclude the new tab page itself from the tab list (filter out chrome://newtab and extension URLs).
+
+Update newtab.html to include tabs.js in script loading order.
+Update newtab.js to call BookmarkBoard.Tabs.loadTabs() and BookmarkBoard.Tabs.setupListeners() after store init."
+    ]
+
+    // ─── Phase 6: Drag & Drop ─────────────────────────────────
+
+    build_dragdrop [
+        shape="box"
+        label="Build Drag & Drop"
+        prompt="Create /Volumes/qwiizlab/projects/bookmark_board/js/dragdrop.js
+
+Add to BookmarkBoard.DragDrop namespace. Uses native HTML5 Drag and Drop API (no libraries).
+
+Implement:
+
+1. init() — Set up drag and drop:
+   - Make bookmark cards draggable (set draggable='true' in render.js)
+   - Make open tab entries draggable
+   - Set up drop zones on collection bodies and collection headers
+
+2. Drag sources — attach dragstart/dragend handlers:
+   - Bookmark cards: set dataTransfer with type='bookmark', collectionId, bookmarkId
+   - Open tab entries: set dataTransfer with type='tab', tabId, title, url
+   - Add a 'dragging' CSS class for visual feedback (opacity reduction)
+
+3. Drop targets — attach dragover/dragenter/dragleave/drop handlers:
+   - Collection body: accepts bookmarks and tabs
+   - On dragover: add 'drop-target' CSS class (highlight border/background)
+   - On dragleave: remove highlight
+   - On drop:
+     a. If type='bookmark': call BookmarkBoard.Store.moveBookmark() then re-render
+     b. If type='tab': call BookmarkBoard.Store.addBookmark() with tab's title+url, then re-render
+
+4. Reordering within a collection:
+   - Track drop position relative to existing bookmark cards
+   - Insert at the correct index using reorderBookmarks()
+
+5. CSS classes to add to newtab.css:
+   - .dragging { opacity: 0.4; }
+   - .drop-target { border: 2px dashed #4db6ac; background: rgba(77,182,172,0.05); }
+   - .drag-ghost { ... } (optional custom drag image)
+
+Update newtab.html to include dragdrop.js in script loading order.
+Update newtab.js to call BookmarkBoard.DragDrop.init() after render.
+Update js/render.js to set draggable='true' on bookmark cards and tab entries."
+    ]
+
+    verify_full [
+        shape="diamond"
+        label="Verify Full Build"
+        node_type="conditional"
+        goal_gate="true"
+        retry_target="fix_full"
+        prompt="Do a comprehensive review of all files in /Volumes/qwiizlab/projects/bookmark_board/.
+
+Verify:
+1. manifest.json is valid MV3, has all required permissions
+2. newtab.html loads all 7 JS files in correct dependency order: utils.js, store.js, render.js, import.js, tabs.js, dragdrop.js, newtab.js
+3. All JS files use BookmarkBoard namespace consistently (no ES modules)
+4. Store has complete CRUD for spaces, collections, bookmarks, tags
+5. Render creates the full three-panel UI with sidebar, collections grid, and tabs sidebar
+6. Import reads from chrome.bookmarks API and maps folders to collections
+7. Tabs sidebar queries chrome.tabs and sets up live listeners
+8. Drag and drop works for both bookmark reordering and tab-to-collection drops
+9. CSS covers all UI elements: sidebar, collection headers, bookmark cards, tab entries, modals, drag states
+10. No obvious bugs: undefined references, missing function calls, broken event handlers
+11. newtab.js properly orchestrates initialization in the right order
+
+Respond PASS or FAIL on the last line. If FAIL, write specific issues to .attractor/full-build-issues.md"
+    ]
+
+    fix_full [
+        shape="box"
+        label="Fix Full Build Issues"
+        prompt="Read .attractor/full-build-issues.md and fix ALL issues found. This is the final quality gate — make sure everything works together:
+- All cross-file references resolve correctly
+- Event handlers are properly wired
+- CSS classes match what JS adds/removes
+- chrome.* API calls use correct signatures
+- No missing script tags in newtab.html
+
+Re-read every file after fixing to confirm."
+        retry_target="verify_full"
+    ]
+
+    // ─── Phase 7: AI Grouping (Enhancement) ───────────────────
+
+    build_ai_grouping [
+        shape="box"
+        label="Build AI Grouping"
+        prompt="Add AI-powered bookmark organization to /Volumes/qwiizlab/projects/bookmark_board/.
+
+Create js/ai-grouping.js (add to BookmarkBoard.AI namespace):
+
+1. showSettingsModal() — Settings UI:
+   - Modal with API key input field (for Anthropic/OpenAI API)
+   - Model selector dropdown
+   - Save to chrome.storage.local under settings.aiApiKey and settings.aiModel
+   - Test connection button
+
+2. organizeWithAI(bookmarks) — Main function:
+   - Takes an array of bookmarks [{title, url}]
+   - Sends to LLM API with a prompt like:
+     'Given these bookmarks, suggest collection groupings. Return JSON: { collections: [{ name: string, bookmarkIndices: number[] }] }'
+   - Parse response and return suggested groupings
+
+3. showOrganizeModal() — UI flow:
+   - Collect all bookmarks from 'Unsorted' collection or selected collections
+   - Show 'Organizing with AI...' spinner
+   - Call organizeWithAI()
+   - Show preview: proposed collection names with bookmarks listed under each
+   - 'Apply' button to create the collections and move bookmarks
+   - 'Cancel' to discard suggestions
+
+4. Add 'Organize with AI' button:
+   - Visible in the top bar or as a menu option
+   - Only enabled if API key is configured
+
+Update newtab.html to include ai-grouping.js.
+Update newtab.css with modal styles for settings and organize preview."
+    ]
+
+    // ─── Phase 8: Polish ──────────────────────────────────────
+
+    polish [
+        shape="box"
+        label="Polish & UX"
+        prompt="Final polish pass on /Volumes/qwiizlab/projects/bookmark_board/.
+
+Add these finishing touches:
+
+1. Context menus — Right-click on bookmark card:
+   - Edit title (inline edit)
+   - Copy URL to clipboard
+   - Open in new tab
+   - Open in new window
+   - Delete
+
+2. Collection actions — 3-dot menu on collection header:
+   - Open all tabs (opens all bookmarks in new window)
+   - Rename collection
+   - Add/edit tags
+   - Delete collection (with confirmation)
+
+3. Keyboard shortcuts:
+   - '/' focuses the search input
+   - 'Escape' clears search and closes modals
+
+4. Dark mode:
+   - Add a theme toggle button (sun/moon icon) in the top bar
+   - Add CSS custom properties for colors (--bg-primary, --bg-secondary, --text-primary, etc.)
+   - Dark theme class on body swaps the custom properties
+   - Save preference in settings
+
+5. Empty states:
+   - No collections yet → show 'Import your bookmarks to get started' with import button
+   - Empty collection → show 'Drag tabs here or add bookmarks' placeholder
+   - No search results → show 'No bookmarks match your search'
+
+6. Visual refinements:
+   - Smooth transitions on collapse/expand (max-height animation)
+   - Hover effects on cards (subtle lift/shadow)
+   - Loading state on initial render
+   - Favicon fallback for broken/missing favicons (show first letter of domain)
+
+7. Update PIPELINE.md — Mark all steps as [x] done."
+    ]
+
+    // ─── Edges ────────────────────────────────────────────────
+
+    start -> investigate_structure
+    investigate_structure -> scaffold
+    scaffold -> verify_scaffold
+
+    verify_scaffold -> build_store       [label="PASS", condition="preferred_label=PASS"]
+    verify_scaffold -> fix_scaffold      [label="FAIL", condition="preferred_label=FAIL"]
+
+    build_store -> build_render
+    build_render -> verify_render
+
+    verify_render -> build_import        [label="PASS", condition="preferred_label=PASS"]
+    verify_render -> fix_render          [label="FAIL", condition="preferred_label=FAIL"]
+
+    build_import -> build_tabs
+    build_tabs -> build_dragdrop
+    build_dragdrop -> verify_full
+
+    verify_full -> build_ai_grouping     [label="PASS", condition="preferred_label=PASS"]
+    verify_full -> fix_full              [label="FAIL", condition="preferred_label=FAIL"]
+
+    build_ai_grouping -> polish
+    polish -> done
+}

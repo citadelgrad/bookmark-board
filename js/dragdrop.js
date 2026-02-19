@@ -1,0 +1,333 @@
+/**
+ * dragdrop.js — Native HTML5 drag-and-drop for Bookmark Board
+ * Adds BookmarkBoard.DragDrop to the shared namespace.
+ *
+ * Supports:
+ *   - Reordering bookmark cards within a collection
+ *   - Moving bookmark cards between collections
+ *   - Dropping open tab entries onto a collection to create a bookmark
+ *
+ * Data flow:
+ *   dragstart → encode source data in dataTransfer
+ *   dragover  → show visual drop target; compute insertion position
+ *   drop      → decode data; call Store mutation; re-render
+ */
+
+window.BookmarkBoard = window.BookmarkBoard || {};
+
+BookmarkBoard.DragDrop = (function () {
+  const Store = BookmarkBoard.Store;
+
+  // ─── Drag state ────────────────────────────────────────────────────────────
+
+  // Mirrors what we packed into dataTransfer so drop handlers can read it
+  // synchronously without relying on getData() which is restricted in dragover.
+  let _dragState = null;
+
+  // The placeholder element shown in the grid while dragging
+  let _placeholder = null;
+
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
+  /**
+   * Return the grid element for a collection id, or null.
+   * @param {string} collectionId
+   * @returns {HTMLElement|null}
+   */
+  function _gridFor(collectionId) {
+    return document.querySelector(`.bookmark-grid[data-collection-id="${CSS.escape(collectionId)}"]`);
+  }
+
+  /**
+   * Compute the insertion index for a drop within a grid.
+   * Uses horizontal midpoint of each card to decide before/after.
+   *
+   * @param {HTMLElement} grid
+   * @param {number} clientX
+   * @param {number} clientY
+   * @returns {number}
+   */
+  function _dropIndex(grid, clientX, clientY) {
+    const cards = [...grid.querySelectorAll('.bookmark-card:not(.dragging)')];
+    for (let i = 0; i < cards.length; i++) {
+      const rect = cards[i].getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      const midY = rect.top + rect.height / 2;
+
+      // Multi-row grid: compare by row first (Y), then column (X)
+      if (clientY < rect.bottom) {
+        // We are on this row or above it
+        if (clientY < midY || clientX < midX) {
+          return i;
+        }
+        // Past the midpoint of this card — insert after it if it's the
+        // last card in the row (next card is on a new row) or just continue
+        if (i + 1 < cards.length) {
+          const nextRect = cards[i + 1].getBoundingClientRect();
+          if (nextRect.top > rect.bottom - 4) {
+            // Next card is on a new row — insert at end of this row
+            return i + 1;
+          }
+        }
+      }
+    }
+    return cards.length;
+  }
+
+  /**
+   * Ensure a placeholder card exists and position it in the grid.
+   * @param {HTMLElement} grid
+   * @param {number} index  insertion index before which to show the placeholder
+   */
+  function _showPlaceholder(grid, index) {
+    if (!_placeholder) {
+      _placeholder = document.createElement('div');
+      _placeholder.className = 'bookmark-card drag-placeholder';
+    }
+
+    const cards = [...grid.querySelectorAll('.bookmark-card:not(.drag-placeholder)')];
+    if (index >= cards.length) {
+      grid.appendChild(_placeholder);
+    } else {
+      grid.insertBefore(_placeholder, cards[index]);
+    }
+  }
+
+  /** Remove the placeholder from wherever it currently lives. */
+  function _removePlaceholder() {
+    if (_placeholder && _placeholder.parentNode) {
+      _placeholder.parentNode.removeChild(_placeholder);
+    }
+    _placeholder = null;
+  }
+
+  /** Clear all drop-target highlights. */
+  function _clearHighlights() {
+    document.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+  }
+
+  // ─── Bookmark card drag source ─────────────────────────────────────────────
+
+  /**
+   * Attach dragstart / dragend handlers to a single bookmark card.
+   * render.js already sets draggable="true" on the card element.
+   *
+   * @param {HTMLElement} card
+   */
+  function _attachCardDrag(card) {
+    card.addEventListener('dragstart', e => {
+      const bookmarkId = card.dataset.bookmarkId;
+      const collectionId = card.dataset.collectionId;
+
+      _dragState = { type: 'bookmark', bookmarkId, collectionId };
+
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('application/x-bb-bookmark-id', bookmarkId);
+      e.dataTransfer.setData('application/x-bb-collection-id', collectionId);
+      e.dataTransfer.setData('text/plain', bookmarkId);
+
+      // Defer adding .dragging so the browser snapshot doesn't include it
+      requestAnimationFrame(() => card.classList.add('dragging'));
+    });
+
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      _dragState = null;
+      _removePlaceholder();
+      _clearHighlights();
+    });
+  }
+
+  // ─── Collection body drop target ───────────────────────────────────────────
+
+  /**
+   * Attach dragover / dragenter / dragleave / drop handlers to a grid element.
+   * @param {HTMLElement} grid
+   */
+  function _attachGridDrop(grid) {
+    const collectionId = grid.dataset.collectionId;
+
+    grid.addEventListener('dragenter', e => {
+      if (!_isAcceptable(e)) return;
+      e.preventDefault();
+      grid.classList.add('drop-target');
+    });
+
+    grid.addEventListener('dragover', e => {
+      if (!_isAcceptable(e)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = _dragState && _dragState.type === 'bookmark' ? 'move' : 'copy';
+
+      grid.classList.add('drop-target');
+
+      if (_dragState && _dragState.type === 'bookmark') {
+        const idx = _dropIndex(grid, e.clientX, e.clientY);
+        _showPlaceholder(grid, idx);
+      }
+    });
+
+    grid.addEventListener('dragleave', e => {
+      // Only clear if we've left the grid entirely (not just moved to a child)
+      if (!grid.contains(e.relatedTarget)) {
+        grid.classList.remove('drop-target');
+        _removePlaceholder();
+      }
+    });
+
+    grid.addEventListener('drop', async e => {
+      e.preventDefault();
+      grid.classList.remove('drop-target');
+      _removePlaceholder();
+
+      const Render = BookmarkBoard.Render;
+
+      // ── Bookmark card dropped ──
+      if (_dragState && _dragState.type === 'bookmark') {
+        const { bookmarkId, collectionId: fromCollectionId } = _dragState;
+
+        // Compute drop index from placeholder position
+        const cards = [...grid.querySelectorAll('.bookmark-card:not(.dragging):not(.drag-placeholder)')];
+        let dropIdx = cards.length;
+        if (_placeholder && _placeholder.parentNode === grid) {
+          const phIdx = [...grid.children].indexOf(_placeholder);
+          // Count only real cards before the placeholder
+          dropIdx = [...grid.children].slice(0, phIdx)
+            .filter(el => el.classList.contains('bookmark-card') &&
+                          !el.classList.contains('dragging') &&
+                          !el.classList.contains('drag-placeholder'))
+            .length;
+        }
+
+        if (fromCollectionId === collectionId) {
+          // Same collection — reorder
+          const col = Store.getCollections(Render.getActiveSpaceId())
+            .find(c => c.id === collectionId);
+          if (col) {
+            const ids = col.bookmarks
+              .slice()
+              .sort((a, b) => a.order - b.order)
+              .map(b => b.id)
+              .filter(id => id !== bookmarkId);
+            ids.splice(dropIdx, 0, bookmarkId);
+            await Store.reorderBookmarks(collectionId, ids);
+          }
+        } else {
+          // Cross-collection move
+          await Store.moveBookmark(fromCollectionId, collectionId, bookmarkId, dropIdx);
+        }
+
+        if (Render) Render.renderCollections(Render.getActiveSpaceId());
+        return;
+      }
+
+      // ── Tab entry dropped ──
+      const tabUrl = e.dataTransfer.getData('application/x-tab-url') ||
+                     e.dataTransfer.getData('text/uri-list') ||
+                     e.dataTransfer.getData('text/plain');
+      const tabTitle = e.dataTransfer.getData('application/x-tab-title') || tabUrl;
+
+      if (tabUrl) {
+        await Store.addBookmark(collectionId, { title: tabTitle, url: tabUrl });
+        if (Render) Render.renderCollections(Render.getActiveSpaceId());
+      }
+    });
+  }
+
+  // ─── Collection header drop target ─────────────────────────────────────────
+
+  /**
+   * Allow dropping onto a collapsed collection header to add to the top.
+   * @param {HTMLElement} header
+   * @param {string} collectionId
+   */
+  function _attachHeaderDrop(header, collectionId) {
+    header.addEventListener('dragenter', e => {
+      if (!_isAcceptable(e)) return;
+      e.preventDefault();
+      header.classList.add('drop-target');
+    });
+
+    header.addEventListener('dragover', e => {
+      if (!_isAcceptable(e)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      header.classList.add('drop-target');
+    });
+
+    header.addEventListener('dragleave', e => {
+      if (!header.contains(e.relatedTarget)) {
+        header.classList.remove('drop-target');
+      }
+    });
+
+    header.addEventListener('drop', async e => {
+      e.preventDefault();
+      header.classList.remove('drop-target');
+
+      const Render = BookmarkBoard.Render;
+      const tabUrl = e.dataTransfer.getData('application/x-tab-url') ||
+                     e.dataTransfer.getData('text/uri-list') ||
+                     e.dataTransfer.getData('text/plain');
+      const tabTitle = e.dataTransfer.getData('application/x-tab-title') || tabUrl;
+
+      if (tabUrl) {
+        await Store.addBookmark(collectionId, { title: tabTitle, url: tabUrl });
+        if (Render) Render.renderCollections(Render.getActiveSpaceId());
+      } else if (_dragState && _dragState.type === 'bookmark') {
+        const { bookmarkId, collectionId: fromCollectionId } = _dragState;
+        await Store.moveBookmark(fromCollectionId, collectionId, bookmarkId, 0);
+        if (Render) Render.renderCollections(Render.getActiveSpaceId());
+      }
+    });
+  }
+
+  // ─── Acceptability guard ───────────────────────────────────────────────────
+
+  /**
+   * Return true if this drag event carries data we can handle.
+   * We accept:
+   *   - Our own bookmark cards (_dragState set)
+   *   - Tab items from the tabs sidebar (x-tab-url type)
+   *   - Generic URI drops (text/uri-list)
+   */
+  function _isAcceptable(e) {
+    if (_dragState) return true;
+    const types = e.dataTransfer.types;
+    return types.includes('application/x-tab-url') ||
+           types.includes('text/uri-list');
+  }
+
+  // ─── Public: init ──────────────────────────────────────────────────────────
+
+  /**
+   * Set up drag and drop for all current bookmark cards and collection grids.
+   * Call this after every render that produces new DOM elements.
+   */
+  function init() {
+    // Attach drag sources to all bookmark cards
+    document.querySelectorAll('.bookmark-card[data-bookmark-id]').forEach(card => {
+      // Guard against double-attaching by checking a data flag
+      if (card.dataset.ddInit) return;
+      card.dataset.ddInit = '1';
+      _attachCardDrag(card);
+    });
+
+    // Attach drop targets to all bookmark grids
+    document.querySelectorAll('.bookmark-grid[data-collection-id]').forEach(grid => {
+      if (grid.dataset.ddInit) return;
+      grid.dataset.ddInit = '1';
+      _attachGridDrop(grid);
+    });
+
+    // Attach drop targets to collection headers (for collapsed collections)
+    document.querySelectorAll('.collection-header').forEach(header => {
+      const section = header.closest('[data-collection-id]');
+      if (!section) return;
+      if (header.dataset.ddInit) return;
+      header.dataset.ddInit = '1';
+      _attachHeaderDrop(header, section.dataset.collectionId);
+    });
+  }
+
+  return { init };
+})();
