@@ -4,7 +4,7 @@
  */
 
 (async function () {
-  const { Store, Render, Import, Tabs, DragDrop, AI } = BookmarkBoard;
+  const { Store, Render, Import, Backup, Tabs, DragDrop, AI } = BookmarkBoard;
 
   // ─── Loading skeleton ───────────────────────────────────────────────────────
   const container = document.getElementById('collections-container');
@@ -111,6 +111,17 @@
   if (importBtn && Import && activeSpaceId) {
     importBtn.addEventListener('click', () => {
       Import.importBookmarkBar(activeSpaceId, false);
+    });
+  }
+
+  // ─── Export / Restore buttons ───────────────────────────────────────────────
+  if (Backup) {
+    const exportBtn = document.getElementById('btn-export');
+    if (exportBtn) exportBtn.addEventListener('click', () => Backup.exportData());
+
+    const restoreBtn = document.getElementById('btn-restore');
+    if (restoreBtn) restoreBtn.addEventListener('click', () => {
+      Backup.showRestoreModal(() => Render.getActiveSpaceId());
     });
   }
 

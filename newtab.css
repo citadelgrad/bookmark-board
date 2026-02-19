@@ -559,6 +559,29 @@ a {
   min-height: 90px;
 }
 
+/* Collection being dragged for reorder */
+.collection.dragging {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Horizontal placeholder line between collections during drag */
+.collection-drag-placeholder {
+  height: 3px;
+  background: #4db6ac;
+  border-radius: 2px;
+  margin: 4px 0;
+}
+
+/* Collection header drag affordance */
+.collection-header[draggable="true"] {
+  cursor: grab;
+}
+
+.collection-header[draggable="true"]:active {
+  cursor: grabbing;
+}
+
 /* Legacy: whole-collection drop target (kept for backward compat) */
 .collection.drop-target {
   outline: 2px dashed var(--sidebar-accent);
@@ -975,6 +998,80 @@ a {
 
 .import-modal-btn--secondary:hover:not(:disabled) {
   background: #e2e8f0;
+}
+
+/* ── Folder picker (inside import modal) ── */
+.import-folder-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--sidebar-accent);
+  padding: 0;
+  align-self: flex-start;
+}
+
+.import-folder-toggle:hover {
+  text-decoration: underline;
+}
+
+.import-folder-list {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: var(--card-border) transparent;
+}
+
+.import-folder-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+  user-select: none;
+}
+
+.import-folder-item:hover {
+  background: var(--collection-header-bg);
+}
+
+.import-folder-item input[type="checkbox"] {
+  flex-shrink: 0;
+  accent-color: var(--sidebar-accent);
+}
+
+.import-folder-item-name {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-folder-item-count {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Restore modal — file input */
+.restore-file-input {
+  display: block;
+  width: 100%;
+  margin: 12px 0;
+  padding: 8px;
+  font-size: 0.9rem;
+  border: 1px dashed var(--card-border);
+  border-radius: 6px;
+  background: var(--collection-header-bg);
+  cursor: pointer;
 }
 
 /* ===========================

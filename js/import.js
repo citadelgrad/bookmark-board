@@ -174,8 +174,15 @@ BookmarkBoard.Import = (function () {
 
   // ─── Modal UI ──────────────────────────────────────────────────────────────
 
+  /** Count bookmarks recursively inside a node. */
+  function _countBookmarks(node) {
+    if (node.url) return 1;
+    return (node.children || []).reduce((n, c) => n + _countBookmarks(c), 0);
+  }
+
   /**
    * Build and display the import modal overlay.
+   * On open, loads the bookmark bar and presents a folder checklist.
    * Resolves when the user closes the modal (after import or on cancel).
    *
    * @param {string}  spaceId - target space for import
@@ -241,7 +248,8 @@ BookmarkBoard.Import = (function () {
 
       const importBtn = document.createElement('button');
       importBtn.className = 'import-modal-btn import-modal-btn--primary';
-      importBtn.textContent = 'Import from Bookmark Bar';
+      importBtn.textContent = 'Import Selected';
+      importBtn.disabled = true; // enabled after folder list loads
 
       const cancelBtn = document.createElement('button');
       cancelBtn.className = 'import-modal-btn import-modal-btn--secondary';
@@ -251,9 +259,6 @@ BookmarkBoard.Import = (function () {
       dialog.append(header, body, footer);
       overlay.appendChild(dialog);
       document.body.appendChild(overlay);
-
-      // Trap focus on open
-      importBtn.focus();
 
       // ── Event handlers ─────────────────────────────────────────────────────
 
@@ -265,37 +270,171 @@ BookmarkBoard.Import = (function () {
       closeBtn.addEventListener('click', _close);
       cancelBtn.addEventListener('click', _close);
 
-      // Click outside dialog closes
       overlay.addEventListener('click', e => {
         if (e.target === overlay) _close();
       });
 
-      // Escape key closes
       overlay.addEventListener('keydown', e => {
         if (e.key === 'Escape') _close();
       });
 
-      importBtn.addEventListener('click', async () => {
+      // ── State shared between load / import ─────────────────────────────────
+      let _barNode = null; // the raw bookmark bar node
+
+      /**
+       * Build (or rebuild) the folder checklist inside the modal body.
+       * Called on first open and after "Import Again".
+       */
+      async function _loadFolderList() {
         importBtn.disabled = true;
-        cancelBtn.disabled = true;
-        status.textContent = 'Accessing bookmark bar\u2026';
+        importBtn.textContent = 'Import Selected';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.disabled = false;
+        status.textContent = 'Loading bookmark bar\u2026';
+
+        // Remove any previous folder list
+        const prev = body.querySelector('.import-folder-list');
+        if (prev) prev.remove();
+        const prevToggle = body.querySelector('.import-folder-toggle');
+        if (prevToggle) prevToggle.remove();
 
         try {
           const [barNode] = await chrome.bookmarks.getSubTree('1');
+          _barNode = barNode;
 
-          // Count total bookmarks first to show progress hint
-          let found = 0;
-          (function count(node) {
-            if (node.url) { found++; return; }
-            (node.children || []).forEach(count);
-          })(barNode);
+          const children = barNode.children || [];
+          const looseBookmarks = children.filter(n => n.url);
+          const folders = children.filter(n => !n.url && n.children);
 
-          status.textContent = `Importing\u2026 ${found} bookmark${found !== 1 ? 's' : ''} found`;
+          if (looseBookmarks.length === 0 && folders.length === 0) {
+            status.textContent = 'Your bookmark bar is empty.';
+            return;
+          }
 
-          const { collectionCount, bookmarkCount } = _runImport(spaceId, barNode);
+          status.textContent = '';
+
+          // Build entries: [ { label, count, index|'loose' } ]
+          const entries = [];
+
+          if (looseBookmarks.length > 0) {
+            entries.push({
+              key: 'loose',
+              label: 'Unsorted',
+              count: looseBookmarks.length,
+            });
+          }
+
+          folders.forEach((folder, i) => {
+            entries.push({
+              key: i,
+              label: folder.title || '(untitled)',
+              count: _countBookmarks(folder),
+            });
+          });
+
+          // Select All / Deselect All toggle
+          const toggleLink = document.createElement('button');
+          toggleLink.className = 'import-folder-toggle';
+          toggleLink.textContent = 'Deselect All';
+          body.insertBefore(toggleLink, status);
+
+          // Scrollable folder list
+          const list = document.createElement('div');
+          list.className = 'import-folder-list';
+
+          entries.forEach(({ key, label, count }) => {
+            const item = document.createElement('label');
+            item.className = 'import-folder-item';
+
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = true;
+            cb.dataset.key = key;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'import-folder-item-name';
+            nameSpan.textContent = label;
+
+            const countSpan = document.createElement('span');
+            countSpan.className = 'import-folder-item-count';
+            countSpan.textContent = `${count} bookmark${count !== 1 ? 's' : ''}`;
+
+            item.append(cb, nameSpan, countSpan);
+            list.appendChild(item);
+          });
+
+          body.insertBefore(list, status);
+
+          // Toggle behaviour
+          toggleLink.addEventListener('click', () => {
+            const boxes = list.querySelectorAll('input[type="checkbox"]');
+            const allChecked = Array.from(boxes).every(c => c.checked);
+            boxes.forEach(c => { c.checked = !allChecked; });
+            toggleLink.textContent = allChecked ? 'Select All' : 'Deselect All';
+          });
+
+          // Keep toggle label in sync when individual checkboxes change
+          list.addEventListener('change', () => {
+            const boxes = list.querySelectorAll('input[type="checkbox"]');
+            const allChecked = Array.from(boxes).every(c => c.checked);
+            toggleLink.textContent = allChecked ? 'Deselect All' : 'Select All';
+          });
+
+          importBtn.disabled = false;
+          importBtn.focus();
+        } catch (err) {
+          status.textContent =
+            'Could not access bookmarks. Make sure the extension has bookmark permission.';
+          console.error('[BookmarkBoard] Import error:', err);
+        }
+      }
+
+      // ── Import click ────────────────────────────────────────────────────────
+      importBtn.addEventListener('click', async () => {
+        if (!_barNode) return;
+
+        const list = body.querySelector('.import-folder-list');
+        const checked = new Set();
+        if (list) {
+          list.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            if (cb.checked) checked.add(cb.dataset.key);
+          });
+        }
+
+        if (checked.size === 0) {
+          status.textContent = 'Select at least one folder to import.';
+          return;
+        }
+
+        importBtn.disabled = true;
+        cancelBtn.disabled = true;
+        status.textContent = 'Importing\u2026';
+
+        try {
+          const children = _barNode.children || [];
+          const looseBookmarks = children.filter(n => n.url);
+          const folders = children.filter(n => !n.url && n.children);
+
+          // Build a filtered clone of barNode with only selected children
+          const filteredChildren = [];
+
+          if (checked.has('loose')) {
+            filteredChildren.push(...looseBookmarks);
+          }
+
+          folders.forEach((folder, i) => {
+            if (checked.has(String(i))) {
+              filteredChildren.push(folder);
+            }
+          });
+
+          const filteredBar = Object.assign({}, _barNode, {
+            children: filteredChildren,
+          });
+
+          const { collectionCount, bookmarkCount } = _runImport(spaceId, filteredBar);
           await Store._save();
 
-          // Mark as imported in settings
           Store._state.settings.hasImported = true;
           await Store._save();
 
@@ -314,6 +453,9 @@ BookmarkBoard.Import = (function () {
           if (Render && Render.renderAll) {
             Render.renderAll(spaceId);
           }
+
+          // "Import Again" re-shows the picker
+          importBtn.onclick = () => _loadFolderList();
         } catch (err) {
           status.textContent =
             'Could not access bookmarks. Make sure the extension has bookmark permission.';
@@ -322,6 +464,9 @@ BookmarkBoard.Import = (function () {
           console.error('[BookmarkBoard] Import error:', err);
         }
       });
+
+      // ── Kick off initial load ───────────────────────────────────────────────
+      _loadFolderList();
     });
   }
 

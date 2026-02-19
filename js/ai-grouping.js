@@ -19,13 +19,26 @@ BookmarkBoard.AI = (function () {
     { value: 'claude-haiku-4-5-20251001',  label: 'Claude Haiku 4.5 (Fast)',         provider: 'anthropic' },
     { value: 'gpt-4o-mini',                label: 'GPT-4o Mini (OpenAI)',             provider: 'openai'    },
     { value: 'gpt-4o',                     label: 'GPT-4o (OpenAI)',                  provider: 'openai'    },
+    { value: 'gemini-2.5-flash-preview',   label: 'Gemini 2.5 Flash Preview (Google)', provider: 'google'    },
   ];
 
   // ─── Settings persistence ───────────────────────────────────────────────────
 
   async function _loadSettings() {
     const result = await chrome.storage.local.get(SETTINGS_KEY);
-    return result[SETTINGS_KEY] || { apiKey: '', model: MODELS[0].value };
+    let settings = result[SETTINGS_KEY] || { apiKeys: {}, model: MODELS[0].value };
+
+    // Migrate from old single-key shape { apiKey } → { apiKeys: { provider: key } }
+    if (settings.apiKey !== undefined) {
+      const provider = _providerFor(settings.model);
+      settings.apiKeys = settings.apiKeys || {};
+      if (settings.apiKey) settings.apiKeys[provider] = settings.apiKey;
+      delete settings.apiKey;
+      await _saveSettings(settings);
+    }
+
+    if (!settings.apiKeys) settings.apiKeys = {};
+    return settings;
   }
 
   async function _saveSettings(settings) {
@@ -85,6 +98,32 @@ BookmarkBoard.AI = (function () {
 
       const data = await res.json();
       responseText = data.content?.[0]?.text ?? '';
+
+    } else if (provider === 'google') {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ parts: [{ text: userPrompt }] }],
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(
+          err.error?.message || `Google API error ${res.status}`
+        );
+      }
+
+      const data = await res.json();
+      responseText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 
     } else {
       // OpenAI-compatible
@@ -210,6 +249,19 @@ BookmarkBoard.AI = (function () {
         modelSelect.appendChild(opt);
       });
 
+      // Per-provider label/placeholder map
+      const _providerMeta = {
+        anthropic: { label: 'Anthropic API Key', placeholder: 'sk-ant-…' },
+        openai:    { label: 'OpenAI API Key',    placeholder: 'sk-…' },
+        google:    { label: 'Google API Key',    placeholder: 'AIza…' },
+      };
+
+      function _updateKeyUI(provider) {
+        const meta = _providerMeta[provider] || _providerMeta.anthropic;
+        keyLabel.textContent = meta.label;
+        keyInput.placeholder = meta.placeholder;
+      }
+
       // API key
       const keyLabel = document.createElement('label');
       keyLabel.className = 'ai-modal-label';
@@ -220,7 +272,7 @@ BookmarkBoard.AI = (function () {
       keyInput.id = 'ai-key-input';
       keyInput.className = 'ai-modal-input';
       keyInput.type = 'password';
-      keyInput.placeholder = 'sk-ant-… or sk-…';
+      keyInput.placeholder = 'sk-ant-…';
       keyInput.autocomplete = 'off';
       keyInput.spellcheck = false;
 
@@ -253,12 +305,29 @@ BookmarkBoard.AI = (function () {
       overlay.appendChild(dialog);
       document.body.appendChild(overlay);
 
+      // Track which provider's key is currently shown
+      let _currentProvider = 'anthropic';
+      let _apiKeys = {};
+
       // Populate saved settings
       _loadSettings().then(settings => {
         const match = MODELS.find(m => m.value === settings.model);
         modelSelect.value = match ? settings.model : MODELS[0].value;
-        keyInput.value = settings.apiKey || '';
+        _apiKeys = settings.apiKeys || {};
+        _currentProvider = _providerFor(modelSelect.value);
+        keyInput.value = _apiKeys[_currentProvider] || '';
+        _updateKeyUI(_currentProvider);
         keyInput.focus();
+      });
+
+      // Swap keys when model changes
+      modelSelect.addEventListener('change', () => {
+        // Save current input to old provider
+        _apiKeys[_currentProvider] = keyInput.value.trim();
+        // Switch to new provider
+        _currentProvider = _providerFor(modelSelect.value);
+        keyInput.value = _apiKeys[_currentProvider] || '';
+        _updateKeyUI(_currentProvider);
       });
 
       // ── Event handlers ──────────────────────────────────────────────────────
@@ -279,7 +348,9 @@ BookmarkBoard.AI = (function () {
       });
 
       testBtn.addEventListener('click', () => {
-        const apiKey = keyInput.value.trim();
+        // Save current input into the provider map before testing
+        _apiKeys[_currentProvider] = keyInput.value.trim();
+        const apiKey = _apiKeys[_currentProvider];
         if (!apiKey) {
           testStatus.dataset.state = 'error';
           testStatus.textContent = 'Please enter an API key first.';
@@ -290,11 +361,12 @@ BookmarkBoard.AI = (function () {
       });
 
       saveBtn.addEventListener('click', async () => {
-        const apiKey = keyInput.value.trim();
-        const model  = modelSelect.value;
+        // Save current input into the provider map
+        _apiKeys[_currentProvider] = keyInput.value.trim();
+        const model = modelSelect.value;
 
         saveBtn.disabled = true;
-        await _saveSettings({ apiKey, model });
+        await _saveSettings({ apiKeys: { ..._apiKeys }, model });
         saveBtn.disabled = false;
 
         // Update the AI button state
@@ -443,10 +515,12 @@ BookmarkBoard.AI = (function () {
         let settings;
         try {
           settings = await _loadSettings();
-          if (!settings.apiKey) throw new Error('No API key configured. Open AI Settings first.');
+          const provider = _providerFor(settings.model);
+          const apiKey = (settings.apiKeys || {})[provider];
+          if (!apiKey) throw new Error('No API key configured for this provider. Open AI Settings first.');
 
           const simpleBookmarks = allBookmarks.map(b => ({ title: b.title, url: b.url }));
-          _suggestions = await organizeWithAI(simpleBookmarks, settings.apiKey, settings.model);
+          _suggestions = await organizeWithAI(simpleBookmarks, apiKey, settings.model);
         } catch (err) {
           statusEl.textContent = 'Error: ' + err.message;
           return;
@@ -562,7 +636,9 @@ BookmarkBoard.AI = (function () {
     if (!btn) return;
 
     _loadSettings().then(settings => {
-      if (settings.apiKey) {
+      const provider = _providerFor(settings.model);
+      const apiKey = (settings.apiKeys || {})[provider];
+      if (apiKey) {
         btn.removeAttribute('disabled');
         btn.title = 'Organize bookmarks with AI';
       } else {

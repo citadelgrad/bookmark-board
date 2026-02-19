@@ -539,6 +539,12 @@ BookmarkBoard.Render = (function () {
         },
       },
       {
+        label: '\u{1F4E6} Move to Space \u25B8',
+        action: () => {
+          _showMoveToSpaceSubmenu(collectionId, anchor);
+        },
+      },
+      {
         label: '\u{1F5D1}\uFE0F Delete',
         action: async () => {
           if (confirm('Delete this collection and all its bookmarks?')) {
@@ -549,6 +555,31 @@ BookmarkBoard.Render = (function () {
         },
       },
     ], anchor);
+  }
+
+  function _showMoveToSpaceSubmenu(collectionId, anchor) {
+    _dismissMenu();
+    const spaces = Store.getSpaces().filter(s => s.id !== _activeSpaceId);
+
+    if (spaces.length === 0) {
+      _buildMenu([{
+        label: 'No other spaces',
+        action: () => {},
+      }], anchor);
+      return;
+    }
+
+    _buildMenu(
+      spaces.map(space => ({
+        label: '\u{1F4C1} ' + space.name,
+        action: async () => {
+          await Store.moveCollection(collectionId, space.id);
+          renderCollections(_activeSpaceId);
+          renderSidebar();
+        },
+      })),
+      anchor
+    );
   }
 
   function _showBookmarkMenu(bookmark, collectionId, clientX, clientY) {

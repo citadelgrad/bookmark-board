@@ -183,6 +183,28 @@ BookmarkBoard.Store = (function () {
     await _save();
   }
 
+  async function moveCollection(collectionId, targetSpaceId) {
+    const collection = _state.collections.find(c => c.id === collectionId);
+    if (!collection) return;
+
+    const sourceSpace = _state.spaces.find(s => s.id === collection.spaceId);
+    const targetSpace = _state.spaces.find(s => s.id === targetSpaceId);
+    if (!sourceSpace || !targetSpace) return;
+
+    // Remove from source space
+    sourceSpace.collectionIds = sourceSpace.collectionIds.filter(cid => cid !== collectionId);
+
+    // Add to end of target space
+    targetSpace.collectionIds.push(collectionId);
+
+    // Update collection metadata
+    const targetCollections = _state.collections.filter(c => c.spaceId === targetSpaceId);
+    collection.spaceId = targetSpaceId;
+    collection.order = _nextOrder(targetCollections);
+
+    await _save();
+  }
+
   async function setCollectionTags(id, tags) {
     const collection = _state.collections.find(c => c.id === id);
     if (collection) {
@@ -298,6 +320,7 @@ BookmarkBoard.Store = (function () {
     removeCollection,
     toggleCollapse,
     reorderCollections,
+    moveCollection,
     setCollectionTags,
     // Bookmarks
     addBookmark,

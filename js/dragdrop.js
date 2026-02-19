@@ -27,6 +27,9 @@ BookmarkBoard.DragDrop = (function () {
   // The placeholder element shown in the grid while dragging
   let _placeholder = null;
 
+  // Thin horizontal line shown between collections during collection drag
+  let _collPlaceholder = null;
+
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
   /**
@@ -106,6 +109,115 @@ BookmarkBoard.DragDrop = (function () {
     document.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
   }
 
+  // ─── Collection drag helpers ──────────────────────────────────────────────
+
+  /** Remove the collection drag placeholder line. */
+  function _removeCollPlaceholder() {
+    if (_collPlaceholder && _collPlaceholder.parentNode) {
+      _collPlaceholder.parentNode.removeChild(_collPlaceholder);
+    }
+    _collPlaceholder = null;
+  }
+
+  /**
+   * Compute insertion index among .collection elements based on vertical
+   * cursor position. Returns 0..N where N = number of collections.
+   */
+  function _collectionDropIndex(container, clientY) {
+    const collections = [...container.querySelectorAll('.collection[data-collection-id]:not(.dragging)')];
+    for (let i = 0; i < collections.length; i++) {
+      const rect = collections[i].getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (clientY < midY) return i;
+    }
+    return collections.length;
+  }
+
+  /**
+   * Show a thin horizontal placeholder line at the given insertion index.
+   */
+  function _showCollPlaceholder(container, index) {
+    if (!_collPlaceholder) {
+      _collPlaceholder = document.createElement('div');
+      _collPlaceholder.className = 'collection-drag-placeholder';
+    }
+
+    const collections = [...container.querySelectorAll('.collection[data-collection-id]:not(.dragging)')];
+    if (index >= collections.length) {
+      container.appendChild(_collPlaceholder);
+    } else {
+      container.insertBefore(_collPlaceholder, collections[index]);
+    }
+  }
+
+  /**
+   * Attach dragstart / dragend handlers to a collection header to make the
+   * entire collection draggable for reordering.
+   */
+  function _attachCollectionDrag(header, collectionId, spaceId) {
+    header.draggable = true;
+
+    header.addEventListener('dragstart', e => {
+      _dragState = { type: 'collection', collectionId, spaceId };
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('application/x-bb-collection-drag', collectionId);
+
+      const section = header.closest('.collection');
+      if (section) requestAnimationFrame(() => section.classList.add('dragging'));
+    });
+
+    header.addEventListener('dragend', () => {
+      const section = header.closest('.collection');
+      if (section) section.classList.remove('dragging');
+      _dragState = null;
+      _removeCollPlaceholder();
+      _clearHighlights();
+    });
+  }
+
+  /**
+   * Attach dragover / drop handlers to the collections container to accept
+   * collection reorder drops.
+   */
+  function _attachCollectionDropZone(container) {
+    container.addEventListener('dragover', e => {
+      if (!_dragState || _dragState.type !== 'collection') return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      const idx = _collectionDropIndex(container, e.clientY);
+      _showCollPlaceholder(container, idx);
+    });
+
+    container.addEventListener('dragleave', e => {
+      if (!container.contains(e.relatedTarget)) {
+        _removeCollPlaceholder();
+      }
+    });
+
+    container.addEventListener('drop', async e => {
+      if (!_dragState || _dragState.type !== 'collection') return;
+      e.preventDefault();
+      _removeCollPlaceholder();
+
+      const { collectionId, spaceId } = _dragState;
+      const Render = BookmarkBoard.Render;
+
+      // Build new ordered ID array from current DOM order (excluding the dragged one)
+      const allSections = [...container.querySelectorAll('.collection[data-collection-id]')];
+      const orderedIds = allSections
+        .map(el => el.dataset.collectionId)
+        .filter(id => id !== collectionId);
+
+      // Insert at computed position
+      const dropIdx = _collectionDropIndex(container, e.clientY);
+      orderedIds.splice(dropIdx, 0, collectionId);
+
+      await Store.reorderCollections(spaceId, orderedIds);
+      if (Render) Render.renderCollections(Render.getActiveSpaceId());
+    });
+  }
+
   // ─── Bookmark card drag source ─────────────────────────────────────────────
 
   /**
@@ -148,12 +260,14 @@ BookmarkBoard.DragDrop = (function () {
     const collectionId = grid.dataset.collectionId;
 
     grid.addEventListener('dragenter', e => {
+      if (_dragState?.type === 'collection') return;
       if (!_isAcceptable(e)) return;
       e.preventDefault();
       grid.classList.add('drop-target');
     });
 
     grid.addEventListener('dragover', e => {
+      if (_dragState?.type === 'collection') return;
       if (!_isAcceptable(e)) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = _dragState && _dragState.type === 'bookmark' ? 'move' : 'copy';
@@ -175,6 +289,7 @@ BookmarkBoard.DragDrop = (function () {
     });
 
     grid.addEventListener('drop', async e => {
+      if (_dragState?.type === 'collection') return;
       e.preventDefault();
       grid.classList.remove('drop-target');
       _removePlaceholder();
@@ -242,12 +357,14 @@ BookmarkBoard.DragDrop = (function () {
    */
   function _attachHeaderDrop(header, collectionId) {
     header.addEventListener('dragenter', e => {
+      if (_dragState?.type === 'collection') return;
       if (!_isAcceptable(e)) return;
       e.preventDefault();
       header.classList.add('drop-target');
     });
 
     header.addEventListener('dragover', e => {
+      if (_dragState?.type === 'collection') return;
       if (!_isAcceptable(e)) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
@@ -261,6 +378,7 @@ BookmarkBoard.DragDrop = (function () {
     });
 
     header.addEventListener('drop', async e => {
+      if (_dragState?.type === 'collection') return;
       e.preventDefault();
       header.classList.remove('drop-target');
 
@@ -320,6 +438,7 @@ BookmarkBoard.DragDrop = (function () {
     });
 
     // Attach drop targets to collection headers (for collapsed collections)
+    // AND attach collection drag handles for reordering
     document.querySelectorAll('.collection-header').forEach(header => {
       const section = header.closest('[data-collection-id]');
       if (!section) return;
@@ -327,6 +446,25 @@ BookmarkBoard.DragDrop = (function () {
       header.dataset.ddInit = '1';
       _attachHeaderDrop(header, section.dataset.collectionId);
     });
+
+    // Collection reorder: attach drag source to each collection header
+    const Render = BookmarkBoard.Render;
+    const activeSpaceId = Render ? Render.getActiveSpaceId() : null;
+    document.querySelectorAll('.collection[data-collection-id]').forEach(section => {
+      if (section.dataset.ddCollInit) return;
+      section.dataset.ddCollInit = '1';
+      const header = section.querySelector('.collection-header');
+      if (header && activeSpaceId) {
+        _attachCollectionDrag(header, section.dataset.collectionId, activeSpaceId);
+      }
+    });
+
+    // Collection reorder: attach drop zone to the collections container
+    const collContainer = document.getElementById('collections-container');
+    if (collContainer && !collContainer.dataset.ddCollInit) {
+      collContainer.dataset.ddCollInit = '1';
+      _attachCollectionDropZone(collContainer);
+    }
   }
 
   return { init };
