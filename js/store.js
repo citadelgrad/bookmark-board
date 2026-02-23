@@ -110,6 +110,14 @@ BookmarkBoard.Store = (function () {
     await _save();
   }
 
+  async function setSpaceIcon(id, icon) {
+    const space = _state.spaces.find(s => s.id === id);
+    if (space) {
+      space.icon = icon;
+      await _save();
+    }
+  }
+
   // ─── Collection CRUD ───────────────────────────────────────────────────────
 
   function getCollections(spaceId) {
@@ -313,6 +321,7 @@ BookmarkBoard.Store = (function () {
     renameSpace,
     removeSpace,
     reorderSpaces,
+    setSpaceIcon,
     // Collections
     getCollections,
     addCollection,

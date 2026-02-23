@@ -657,16 +657,11 @@ BookmarkBoard.AI = (function () {
   const AI_TOOLBAR_COLLAPSED_KEY = 'bb_ai_toolbar_collapsed';
 
   function mountToolbar(getActiveSpaceId) {
+    const topbarRow = document.querySelector('.topbar-row');
     const topbar = document.querySelector('.main-topbar');
-    if (!topbar) return;
+    if (!topbarRow || !topbar) return;
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'ai-toolbar-wrapper';
-
-    // Top row: always visible — toggle + Add Collection
-    const topRow = document.createElement('div');
-    topRow.className = 'ai-toolbar-toprow';
-
+    // Tools toggle button — sits inline in topbar-row
     const toggleBtn = document.createElement('button');
     toggleBtn.className = 'ai-toolbar-toggle';
     toggleBtn.title = 'Toggle AI tools';
@@ -679,14 +674,15 @@ BookmarkBoard.AI = (function () {
 
     toggleBtn.append(toggleIcon, toggleLabel);
 
+    // Add Collection button — sits inline in topbar-row
     const addCollBtn = document.createElement('button');
     addCollBtn.id = 'btn-add-collection';
     addCollBtn.className = 'btn-add-collection btn-add-collection--compact';
     addCollBtn.textContent = '+ Add Collection';
 
-    topRow.append(toggleBtn, addCollBtn);
+    topbarRow.append(toggleBtn, addCollBtn);
 
-    // Collapsible row: AI-specific buttons
+    // Collapsible AI toolbar row — below topbar-row in main-topbar
     const aiBar = document.createElement('div');
     aiBar.className = 'ai-toolbar';
 
@@ -704,17 +700,18 @@ BookmarkBoard.AI = (function () {
     settingsBtn.textContent = '\u2699\uFE0F AI Settings';
 
     aiBar.append(organizeBtn, settingsBtn);
-    wrapper.append(topRow, aiBar);
-    topbar.prepend(wrapper);
+    topbarRow.after(aiBar);
 
     // Restore collapsed state (default: collapsed)
     chrome.storage.local.get(AI_TOOLBAR_COLLAPSED_KEY).then(result => {
       const collapsed = result[AI_TOOLBAR_COLLAPSED_KEY] !== false; // default true
-      wrapper.classList.toggle('collapsed', collapsed);
+      aiBar.classList.toggle('collapsed', collapsed);
+      toggleBtn.classList.toggle('collapsed', collapsed);
     });
 
     toggleBtn.addEventListener('click', () => {
-      const collapsed = wrapper.classList.toggle('collapsed');
+      const collapsed = aiBar.classList.toggle('collapsed');
+      toggleBtn.classList.toggle('collapsed', collapsed);
       chrome.storage.local.set({ [AI_TOOLBAR_COLLAPSED_KEY]: collapsed });
     });
 

@@ -71,7 +71,7 @@ BookmarkBoard.Render = (function () {
 
       const icon = document.createElement('span');
       icon.className = 'space-icon';
-      icon.textContent = '\u{1F4C1}'; // 📁
+      icon.textContent = space.icon || '\u{1F4C1}'; // custom or 📁
 
       const name = document.createElement('span');
       name.className = 'space-name';
@@ -478,6 +478,18 @@ BookmarkBoard.Render = (function () {
           const name = prompt('Rename space:', space ? space.name : '');
           if (name && name.trim()) {
             await Store.renameSpace(spaceId, name.trim());
+            renderSidebar();
+          }
+        },
+      },
+      {
+        label: '\u{1F3A8} Change Icon',
+        action: async () => {
+          const space = Store.getSpaces().find(s => s.id === spaceId);
+          const current = space && space.icon ? space.icon : '\u{1F4C1}';
+          const icon = prompt('Enter an emoji for this space:', current);
+          if (icon !== null && icon.trim()) {
+            await Store.setSpaceIcon(spaceId, icon.trim());
             renderSidebar();
           }
         },

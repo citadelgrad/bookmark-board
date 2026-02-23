@@ -1215,20 +1215,7 @@ a {
    AI Toolbar
    =========================== */
 
-.ai-toolbar-wrapper {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-md);
-  margin-bottom: 8px;
-  overflow: hidden;
-}
-
-.ai-toolbar-toprow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-}
+/* AI toolbar: toggle + Add Collection sit inline in topbar-row */
 
 .ai-toolbar-toggle {
   display: inline-flex;
@@ -1255,16 +1242,15 @@ a {
   font-size: 0.5rem;
 }
 
-.ai-toolbar-wrapper.collapsed .ai-toolbar-toggle-icon::before {
+.ai-toolbar-toggle.collapsed .ai-toolbar-toggle-icon::before {
   content: '\25B6'; /* ▶ */
 }
 
-.ai-toolbar-wrapper.collapsed .ai-toolbar {
+.ai-toolbar.collapsed {
   display: none;
 }
 
 .btn-add-collection--compact {
-  margin-left: auto;
   padding: 4px 10px;
   font-size: 12px;
 }
@@ -1669,6 +1655,24 @@ body.dark .btn-add-collection:hover {
 .theme-toggle-btn:hover {
   background: var(--collection-header-bg);
   color: var(--text-primary);
+}
+
+/* Theme toggle in sidebar */
+.sidebar-left .theme-toggle-btn {
+  color: var(--sidebar-text);
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+}
+
+.sidebar-left .theme-toggle-btn:hover {
+  background: var(--sidebar-hover);
+  color: #ffffff;
+}
+
+/* Hide theme toggle when sidebar collapsed */
+#app.sidebar-collapsed .theme-toggle-btn {
+  display: none;
 }
 
 /* ===========================
