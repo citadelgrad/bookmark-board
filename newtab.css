@@ -182,50 +182,30 @@ a {
 }
 
 #app.sidebar-collapsed .sidebar-footer {
-  padding: 8px 4px;
-  display: flex;
+  padding: 6px 4px;
+}
+
+#app.sidebar-collapsed .sidebar-footer-btn {
+  justify-content: center;
+  padding: 8px 0;
+  gap: 0;
+}
+
+#app.sidebar-collapsed .sidebar-footer-label {
+  display: none;
+}
+
+#app.sidebar-collapsed .sidebar-footer-icon {
+  font-size: 16px;
+}
+
+#app.sidebar-collapsed .sidebar-footer-row {
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  gap: 0;
 }
 
-#app.sidebar-collapsed .sidebar-footer .btn-icon {
-  font-size: 16px;
-  padding: 6px;
-  width: 100%;
-  text-align: center;
-  overflow: hidden;
-}
-
-/* Hide text in collapsed footer buttons — show only icon */
-#app.sidebar-collapsed #btn-add-space,
-#app.sidebar-collapsed .btn-icon--import {
-  font-size: 0;
-  line-height: 0;
-}
-
-#app.sidebar-collapsed #btn-add-space::before {
-  content: '+';
-  font-size: 16px;
-  line-height: 1;
-}
-
-#app.sidebar-collapsed #btn-import::before {
-  content: '\2193';
-  font-size: 16px;
-  line-height: 1;
-}
-
-#app.sidebar-collapsed #btn-export::before {
-  content: '\2191';
-  font-size: 16px;
-  line-height: 1;
-}
-
-#app.sidebar-collapsed #btn-restore::before {
-  content: '\21C5';
-  font-size: 16px;
-  line-height: 1;
+#app.sidebar-collapsed .sidebar-footer-row .sidebar-footer-btn {
+  padding: 8px 0;
 }
 
 /* Transition for smooth collapse */
@@ -969,33 +949,58 @@ a {
 }
 
 /* ===========================
-   Add Space button override (sidebar footer)
+   Sidebar Footer Buttons
    =========================== */
-#btn-add-space {
-  font-size: 13px;
-  color: var(--sidebar-text);
+.sidebar-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-  text-align: left;
   padding: 6px 8px;
   border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--sidebar-text);
+  font-family: var(--font);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-#btn-add-space:hover {
+.sidebar-footer-btn:hover {
   background: var(--sidebar-hover);
   color: #ffffff;
 }
 
-/* ===========================
-   Import button (sidebar footer)
-   =========================== */
-.btn-icon--import {
-  margin-top: 4px;
-  opacity: 0.75;
+.sidebar-footer-icon {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
 }
 
-.btn-icon--import:hover {
-  background: var(--sidebar-hover);
-  color: #ffffff;
+.sidebar-footer-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-footer-row {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.sidebar-footer-row .sidebar-footer-btn {
+  flex: 1;
+  justify-content: center;
+  padding: 5px 4px;
+  opacity: 0.7;
+}
+
+.sidebar-footer-row .sidebar-footer-btn:hover {
   opacity: 1;
 }
 

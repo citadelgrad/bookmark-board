@@ -340,7 +340,7 @@ BookmarkBoard.Render = (function () {
         return;
       }
 
-      if (e.target.id === 'btn-add-space') {
+      if (e.target.closest('#btn-add-space')) {
         const name = prompt('Space name:');
         if (name && name.trim()) {
           const space = await Store.addSpace(name.trim());
