@@ -19,7 +19,7 @@ BookmarkBoard.AI = (function () {
     { value: 'claude-haiku-4-5-20251001',  label: 'Claude Haiku 4.5 (Fast)',         provider: 'anthropic' },
     { value: 'gpt-4o-mini',                label: 'GPT-4o Mini (OpenAI)',             provider: 'openai'    },
     { value: 'gpt-4o',                     label: 'GPT-4o (OpenAI)',                  provider: 'openai'    },
-    { value: 'gemini-2.5-flash-preview',   label: 'Gemini 2.5 Flash Preview (Google)', provider: 'google'    },
+    { value: 'gemini-2.5-flash',            label: 'Gemini 2.5 Flash (Google)',          provider: 'google'    },
   ];
 
   // ─── Settings persistence ───────────────────────────────────────────────────
@@ -654,10 +654,39 @@ BookmarkBoard.AI = (function () {
    *
    * @param {Function} getActiveSpaceId - returns the current active space id
    */
+  const AI_TOOLBAR_COLLAPSED_KEY = 'bb_ai_toolbar_collapsed';
+
   function mountToolbar(getActiveSpaceId) {
     const topbar = document.querySelector('.main-topbar');
     if (!topbar) return;
 
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ai-toolbar-wrapper';
+
+    // Top row: always visible — toggle + Add Collection
+    const topRow = document.createElement('div');
+    topRow.className = 'ai-toolbar-toprow';
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'ai-toolbar-toggle';
+    toggleBtn.title = 'Toggle AI tools';
+
+    const toggleIcon = document.createElement('span');
+    toggleIcon.className = 'ai-toolbar-toggle-icon';
+
+    const toggleLabel = document.createElement('span');
+    toggleLabel.textContent = 'Tools';
+
+    toggleBtn.append(toggleIcon, toggleLabel);
+
+    const addCollBtn = document.createElement('button');
+    addCollBtn.id = 'btn-add-collection';
+    addCollBtn.className = 'btn-add-collection btn-add-collection--compact';
+    addCollBtn.textContent = '+ Add Collection';
+
+    topRow.append(toggleBtn, addCollBtn);
+
+    // Collapsible row: AI-specific buttons
     const aiBar = document.createElement('div');
     aiBar.className = 'ai-toolbar';
 
@@ -675,7 +704,19 @@ BookmarkBoard.AI = (function () {
     settingsBtn.textContent = '\u2699\uFE0F AI Settings';
 
     aiBar.append(organizeBtn, settingsBtn);
-    topbar.prepend(aiBar);
+    wrapper.append(topRow, aiBar);
+    topbar.prepend(wrapper);
+
+    // Restore collapsed state (default: collapsed)
+    chrome.storage.local.get(AI_TOOLBAR_COLLAPSED_KEY).then(result => {
+      const collapsed = result[AI_TOOLBAR_COLLAPSED_KEY] !== false; // default true
+      wrapper.classList.toggle('collapsed', collapsed);
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      const collapsed = wrapper.classList.toggle('collapsed');
+      chrome.storage.local.set({ [AI_TOOLBAR_COLLAPSED_KEY]: collapsed });
+    });
 
     organizeBtn.addEventListener('click', () => {
       const spaceId = getActiveSpaceId();

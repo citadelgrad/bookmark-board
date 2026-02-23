@@ -30,6 +30,24 @@
   // Render the full UI (clears skeleton)
   Render.renderAll(activeSpaceId);
 
+  // ─── Sidebar collapse ──────────────────────────────────────────────────────
+  const sidebarToggle = document.getElementById('btn-sidebar-toggle');
+  const sidebarLeft = document.getElementById('sidebar-left');
+  if (sidebarToggle && sidebarLeft) {
+    const COLLAPSED_KEY = 'bb_sidebar_collapsed';
+    chrome.storage.local.get(COLLAPSED_KEY).then(result => {
+      if (result[COLLAPSED_KEY]) {
+        document.getElementById('app').classList.add('sidebar-collapsed');
+      }
+    });
+
+    sidebarToggle.addEventListener('click', () => {
+      const app = document.getElementById('app');
+      const collapsed = app.classList.toggle('sidebar-collapsed');
+      chrome.storage.local.set({ [COLLAPSED_KEY]: collapsed });
+    });
+  }
+
   // ─── Dark mode toggle ───────────────────────────────────────────────────────
   const themeBtn = document.getElementById('btn-theme-toggle');
   if (themeBtn) {

@@ -151,15 +151,7 @@ BookmarkBoard.Render = (function () {
 
     container.innerHTML = '';
 
-    // Toolbar row
-    const toolbar = document.createElement('div');
-    toolbar.className = 'collections-toolbar';
-    const addBtn = document.createElement('button');
-    addBtn.className = 'btn-add-collection';
-    addBtn.id = 'btn-add-collection';
-    addBtn.textContent = '+ Add Collection';
-    toolbar.appendChild(addBtn);
-    container.appendChild(toolbar);
+    // "Add Collection" button is inside the AI toolbar (ai-grouping.js mountToolbar)
 
     if (!spaceId) return;
 
@@ -402,12 +394,16 @@ BookmarkBoard.Render = (function () {
         return;
       }
 
-      // Toggle collapse
-      const toggle = e.target.closest('.collection-toggle');
-      if (toggle && toggle.dataset.collectionId) {
-        await Store.toggleCollapse(toggle.dataset.collectionId);
-        renderCollections(_activeSpaceId);
-        return;
+      // Toggle collapse — clicking anywhere on the header (except menu btn)
+      const header = e.target.closest('.collection-header');
+      if (header && !e.target.closest('.collection-menu-btn')) {
+        const section = header.closest('.collection');
+        const collId = section && section.dataset.collectionId;
+        if (collId) {
+          await Store.toggleCollapse(collId);
+          renderCollections(_activeSpaceId);
+          return;
+        }
       }
 
       // Collection 3-dot menu
