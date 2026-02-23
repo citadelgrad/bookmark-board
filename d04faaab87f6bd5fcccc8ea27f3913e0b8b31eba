@@ -1,0 +1,31 @@
+js/ai-grouping.js
+  094047035966cfed 22,657-658,663-675,677-680,682-689,707-719
+newtab.css
+  094047035966cfed 6,85-88,110-237,333,350,366-367,371,406,411-412,422-423,760,772,859,1209-1262,1267
+newtab.html
+  094047035966cfed 14
+js/render.js
+  094047035966cfed 154,397-403,406
+newtab.js
+  094047035966cfed 33-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "d04faaab87f6bd5fcccc8ea27f3913e0b8b31eba",
+  "prompts": {
+    "094047035966cfed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3feb6c2e-a6cf-4f25-981d-835965f63bb0",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 297,
+      "total_deletions": 61,
+      "accepted_lines": 274,
+      "overriden_lines": 0
+    }
+  }
+}
