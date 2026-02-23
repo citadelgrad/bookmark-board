@@ -1,0 +1,23 @@
+newtab.css
+  094047035966cfed 203,987-990,995-1004
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "81329eca4cd9d9729db4c7ea5b9189d057dbd31d",
+  "prompts": {
+    "094047035966cfed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3feb6c2e-a6cf-4f25-981d-835965f63bb0",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 15,
+      "total_deletions": 11,
+      "accepted_lines": 15,
+      "overriden_lines": 0
+    }
+  }
+}
