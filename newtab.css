@@ -1549,86 +1549,86 @@ a {
    Dark Mode — CSS Variables
    =========================== */
 body.dark {
-  --sidebar-bg: #0d1117;
-  --sidebar-text: #8b9ab0;
-  --sidebar-hover: #161b22;
-  --sidebar-active: #1c3a5e;
-  --sidebar-accent: #58a6ff;
-  --main-bg: #0d1117;
-  --card-bg: #161b22;
-  --card-border: #21262d;
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --card-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.4);
-  --text-primary: #e6edf3;
-  --text-secondary: #8b9ab0;
-  --text-muted: #484f58;
-  --collection-header-bg: #161b22;
-  --right-sidebar-bg: #0d1117;
-  --right-sidebar-border: #21262d;
+  --sidebar-bg: #151d29;
+  --sidebar-text: #909eb4;
+  --sidebar-hover: #202b39;
+  --sidebar-active: #284466;
+  --sidebar-accent: #5ca5fd;
+  --main-bg: #151d29;
+  --card-bg: #4a5568;
+  --card-border: #5a6578;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  --card-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.38);
+  --text-primary: #e7edf3;
+  --text-secondary: #c3cdd9;
+  --text-muted: #8a95a5;
+  --collection-header-bg: #4a5568;
+  --right-sidebar-bg: #1c2533;
+  --right-sidebar-border: #3a4556;
 }
 
 body.dark .search-input {
-  background: #161b22;
-  color: #e6edf3;
-  border-color: #21262d;
+  background: #2a3444;
+  color: #e7edf3;
+  border-color: #3a4556;
 }
 
 body.dark .tag-chip {
-  background: #21262d;
-  color: #8b9ab0;
+  background: #3a4556;
+  color: #c3cdd9;
 }
 
 body.dark .tag-chip:hover {
-  background: #30363d;
-  color: #e6edf3;
+  background: #4a5568;
+  color: #e7edf3;
 }
 
 body.dark .tab-item:hover {
-  background: #161b22;
+  background: #2a3444;
 }
 
 body.dark .tab-item.active-tab {
-  background: #1c3a5e;
+  background: #2d5a8a;
 }
 
 body.dark .context-menu {
-  background: #161b22;
-  border-color: #30363d;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  background: #2a3444;
+  border-color: #4a5568;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 body.dark .context-menu-item:hover {
-  background: #21262d;
+  background: #3a4556;
 }
 
 body.dark .collection-count {
-  background: #21262d;
-  color: #8b9ab0;
+  background: #5a6578;
+  color: #c3cdd9;
 }
 
 body.dark .collection-tag-chip {
-  background: #1c3a5e;
-  color: #58a6ff;
+  background: #284466;
+  color: #5ca5fd;
 }
 
 body.dark .tabs-window-count {
-  background: #21262d;
-  color: #8b9ab0;
+  background: #3a4556;
+  color: #c3cdd9;
 }
 
 body.dark .bookmark-card-empty {
-  border-color: #21262d;
-  color: #484f58;
+  border-color: #5a6578;
+  color: #8a95a5;
 }
 
 body.dark .btn-add-collection {
-  border-color: #58a6ff;
-  color: #58a6ff;
+  border-color: #5ca5fd;
+  color: #5ca5fd;
 }
 
 body.dark .btn-add-collection:hover {
-  background: #1c3a5e;
-  color: #a8d8ff;
+  background: #2d5a8a;
+  color: #b8dcfe;
 }
 
 /* ===========================
@@ -1662,7 +1662,9 @@ body.dark .btn-add-collection:hover {
   color: var(--sidebar-text);
   width: 24px;
   height: 24px;
-  font-size: 14px;
+  font-size: 12px;
+  opacity: 0.5;
+  transition: opacity 0.15s, background 0.15s;
 }
 
 .sidebar-left .theme-toggle-btn:hover {
