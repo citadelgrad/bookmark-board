@@ -292,17 +292,14 @@ BookmarkBoard.DragDrop = (function () {
       if (_dragState?.type === 'collection') return;
       e.preventDefault();
       grid.classList.remove('drop-target');
-      _removePlaceholder();
 
-      const Render = BookmarkBoard.Render;
-
-      // ── Bookmark card dropped ──
+      // Read placeholder position before cleanup so same-grid reorders get the
+      // correct insertion index when dragging left/up.
+      let dropIdx = null;
       if (_dragState && _dragState.type === 'bookmark') {
-        const { bookmarkId, collectionId: fromCollectionId } = _dragState;
-
-        // Compute drop index from placeholder position
         const cards = [...grid.querySelectorAll('.bookmark-card:not(.dragging):not(.drag-placeholder)')];
-        let dropIdx = cards.length;
+        dropIdx = cards.length;
+
         if (_placeholder && _placeholder.parentNode === grid) {
           const phIdx = [...grid.children].indexOf(_placeholder);
           // Count only real cards before the placeholder
@@ -311,7 +308,20 @@ BookmarkBoard.DragDrop = (function () {
                           !el.classList.contains('dragging') &&
                           !el.classList.contains('drag-placeholder'))
             .length;
+        } else {
+          // Fallback when placeholder is unavailable (e.g. very fast drop)
+          dropIdx = _dropIndex(grid, e.clientX, e.clientY);
         }
+      }
+
+      _removePlaceholder();
+
+      const Render = BookmarkBoard.Render;
+
+      // ── Bookmark card dropped ──
+      if (_dragState && _dragState.type === 'bookmark') {
+        const { bookmarkId, collectionId: fromCollectionId } = _dragState;
+        const insertAt = Number.isInteger(dropIdx) ? dropIdx : 0;
 
         if (fromCollectionId === collectionId) {
           // Same collection — reorder
@@ -323,12 +333,12 @@ BookmarkBoard.DragDrop = (function () {
               .sort((a, b) => a.order - b.order)
               .map(b => b.id)
               .filter(id => id !== bookmarkId);
-            ids.splice(dropIdx, 0, bookmarkId);
+            ids.splice(insertAt, 0, bookmarkId);
             await Store.reorderBookmarks(collectionId, ids);
           }
         } else {
           // Cross-collection move
-          await Store.moveBookmark(fromCollectionId, collectionId, bookmarkId, dropIdx);
+          await Store.moveBookmark(fromCollectionId, collectionId, bookmarkId, insertAt);
         }
 
         if (Render) Render.renderCollections(Render.getActiveSpaceId());
