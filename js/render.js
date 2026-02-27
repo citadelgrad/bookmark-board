@@ -86,6 +86,9 @@ BookmarkBoard.Render = (function () {
       item.append(icon, name, menuBtn);
       list.appendChild(item);
     });
+
+    // Re-attach drag handlers to freshly created space items
+    if (BookmarkBoard.DragDrop) BookmarkBoard.DragDrop.init();
   }
 
   // ─── Tag bar ───────────────────────────────────────────────────────────────
