@@ -590,62 +590,113 @@ BookmarkBoard.Render = (function () {
     );
   }
 
+  function _showEditBookmarkModal(bookmark, collectionId) {
+    const domain = _safeDomain(bookmark.url);
+
+    // Overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'import-modal-overlay';
+
+    // Dialog
+    const dialog = document.createElement('div');
+    dialog.className = 'import-modal-dialog';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'import-modal-header';
+    const title = document.createElement('h3');
+    title.className = 'import-modal-title';
+    title.textContent = 'Edit bookmark';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'import-modal-close';
+    closeBtn.textContent = '\u00D7';
+    header.append(title, closeBtn);
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'import-modal-body';
+
+    // Reference line (favicon + domain)
+    const ref = document.createElement('div');
+    ref.className = 'edit-bookmark-ref';
+    const refImg = document.createElement('img');
+    refImg.src = faviconUrl(bookmark.url);
+    refImg.width = 14;
+    refImg.height = 14;
+    const refText = document.createElement('span');
+    refText.textContent = domain;
+    ref.append(refImg, refText);
+
+    // Title field
+    const titleField = document.createElement('div');
+    titleField.className = 'edit-bookmark-field';
+    const titleLabel = document.createElement('label');
+    titleLabel.className = 'edit-bookmark-label';
+    titleLabel.textContent = 'Title';
+    const titleInput = document.createElement('input');
+    titleInput.className = 'edit-bookmark-input';
+    titleInput.value = bookmark.title || domain;
+    titleField.append(titleLabel, titleInput);
+
+    // URL field
+    const urlField = document.createElement('div');
+    urlField.className = 'edit-bookmark-field';
+    const urlLabel = document.createElement('label');
+    urlLabel.className = 'edit-bookmark-label';
+    urlLabel.textContent = 'URL';
+    const urlInput = document.createElement('input');
+    urlInput.className = 'edit-bookmark-input';
+    urlInput.value = bookmark.url;
+    urlField.append(urlLabel, urlInput);
+
+    body.append(ref, titleField, urlField);
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.className = 'import-modal-footer';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'import-modal-btn import-modal-btn--secondary';
+    cancelBtn.textContent = 'Cancel';
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'import-modal-btn import-modal-btn--primary';
+    saveBtn.textContent = 'Save';
+    footer.append(cancelBtn, saveBtn);
+
+    dialog.append(header, body, footer);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+
+    titleInput.focus();
+    titleInput.select();
+
+    // Actions
+    const close = () => overlay.remove();
+
+    const save = async () => {
+      const newTitle = titleInput.value.trim() || domain;
+      const newUrl = urlInput.value.trim();
+      if (newUrl) bookmark.url = newUrl;
+      bookmark.title = newTitle;
+      await Store._save();
+      renderCollections(_activeSpaceId);
+      close();
+    };
+
+    closeBtn.addEventListener('click', close);
+    cancelBtn.addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    saveBtn.addEventListener('click', save);
+    urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } });
+    titleInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); urlInput.focus(); } });
+    overlay.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  }
+
   function _showBookmarkMenu(bookmark, collectionId, clientX, clientY) {
     const domain = _safeDomain(bookmark.url);
     _buildMenu([
       {
-        label: '\u270F\uFE0F Edit title',
-        action: () => {
-          // Find the title element and turn it into an inline input
-          const card = document.querySelector(`.bookmark-card[data-bookmark-id="${bookmark.id}"]`);
-          if (!card) return;
-          const titleEl = card.querySelector('.bookmark-title');
-          if (!titleEl) return;
-          const current = titleEl.textContent;
-          const input = document.createElement('input');
-          input.className = 'bookmark-title-input';
-          input.value = current;
-          titleEl.replaceWith(input);
-          input.focus();
-          input.select();
-          const commit = async () => {
-            const val = input.value.trim() || domain;
-            bookmark.title = val;
-            await Store._save();
-            renderCollections(_activeSpaceId);
-          };
-          input.addEventListener('blur', commit);
-          input.addEventListener('keydown', ev => {
-            if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
-            if (ev.key === 'Escape') renderCollections(_activeSpaceId);
-          });
-        },
-      },
-      {
-        label: '\uD83D\uDD17 Edit URL',
-        action: () => {
-          const card = document.querySelector(`.bookmark-card[data-bookmark-id="${bookmark.id}"]`);
-          if (!card) return;
-          const urlEl = card.querySelector('.bookmark-url');
-          if (!urlEl) return;
-          const input = document.createElement('input');
-          input.className = 'bookmark-url-input';
-          input.value = bookmark.url;
-          urlEl.replaceWith(input);
-          input.focus();
-          input.select();
-          const commit = async () => {
-            const val = input.value.trim();
-            if (val) bookmark.url = val;
-            await Store._save();
-            renderCollections(_activeSpaceId);
-          };
-          input.addEventListener('blur', commit);
-          input.addEventListener('keydown', ev => {
-            if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
-            if (ev.key === 'Escape') renderCollections(_activeSpaceId);
-          });
-        },
+        label: '\u270F\uFE0F Edit bookmark',
+        action: () => _showEditBookmarkModal(bookmark, collectionId),
       },
       {
         label: '\u{1F4CB} Copy URL',

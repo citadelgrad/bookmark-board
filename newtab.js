@@ -52,7 +52,7 @@
   const themeBtn = document.getElementById('btn-theme-toggle');
   if (themeBtn) {
     function _updateThemeIcon() {
-      themeBtn.textContent = document.body.classList.contains('dark') ? '\u263C' : '\u263D'; // ☼ / ☽
+      themeBtn.textContent = document.body.classList.contains('dark') ? '\u2600' : '\uD83C\uDF19'; // ☀ / 🌙
       themeBtn.title = document.body.classList.contains('dark') ? 'Switch to light mode' : 'Switch to dark mode';
     }
     _updateThemeIcon();

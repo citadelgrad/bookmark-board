@@ -30,6 +30,9 @@ BookmarkBoard.DragDrop = (function () {
   // Thin horizontal line shown between collections during collection drag
   let _collPlaceholder = null;
 
+  // Thin horizontal line shown between spaces during space drag
+  let _spacePlaceholder = null;
+
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
   /**
@@ -215,6 +218,113 @@ BookmarkBoard.DragDrop = (function () {
 
       await Store.reorderCollections(spaceId, orderedIds);
       if (Render) Render.renderCollections(Render.getActiveSpaceId());
+    });
+  }
+
+  // ─── Space drag helpers ────────────────────────────────────────────────────
+
+  /** Remove the space drag placeholder line. */
+  function _removeSpacePlaceholder() {
+    if (_spacePlaceholder && _spacePlaceholder.parentNode) {
+      _spacePlaceholder.parentNode.removeChild(_spacePlaceholder);
+    }
+    _spacePlaceholder = null;
+  }
+
+  /**
+   * Compute insertion index among .space-item elements based on vertical
+   * cursor position. Returns 0..N where N = number of spaces.
+   */
+  function _spaceDropIndex(list, clientY) {
+    const items = [...list.querySelectorAll('.space-item[data-space-id]:not(.dragging)')];
+    for (let i = 0; i < items.length; i++) {
+      const rect = items[i].getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (clientY < midY) return i;
+    }
+    return items.length;
+  }
+
+  /**
+   * Show a thin horizontal placeholder line at the given insertion index.
+   */
+  function _showSpacePlaceholder(list, index) {
+    if (!_spacePlaceholder) {
+      _spacePlaceholder = document.createElement('div');
+      _spacePlaceholder.className = 'space-drag-placeholder';
+    }
+
+    const items = [...list.querySelectorAll('.space-item[data-space-id]:not(.dragging)')];
+    if (index >= items.length) {
+      list.appendChild(_spacePlaceholder);
+    } else {
+      list.insertBefore(_spacePlaceholder, items[index]);
+    }
+  }
+
+  /**
+   * Attach dragstart / dragend handlers to a space item to make it draggable.
+   */
+  function _attachSpaceDrag(item) {
+    item.draggable = true;
+
+    item.addEventListener('dragstart', e => {
+      const spaceId = item.dataset.spaceId;
+      _dragState = { type: 'space', spaceId };
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('application/x-bb-space-drag', spaceId);
+
+      requestAnimationFrame(() => item.classList.add('dragging'));
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      _dragState = null;
+      _removeSpacePlaceholder();
+      _clearHighlights();
+    });
+  }
+
+  /**
+   * Attach dragover / drop handlers to the spaces list to accept
+   * space reorder drops.
+   */
+  function _attachSpaceDropZone(list) {
+    list.addEventListener('dragover', e => {
+      if (!_dragState || _dragState.type !== 'space') return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      const idx = _spaceDropIndex(list, e.clientY);
+      _showSpacePlaceholder(list, idx);
+    });
+
+    list.addEventListener('dragleave', e => {
+      if (!list.contains(e.relatedTarget)) {
+        _removeSpacePlaceholder();
+      }
+    });
+
+    list.addEventListener('drop', async e => {
+      if (!_dragState || _dragState.type !== 'space') return;
+      e.preventDefault();
+      _removeSpacePlaceholder();
+
+      const { spaceId } = _dragState;
+      const Render = BookmarkBoard.Render;
+
+      // Build new ordered ID array excluding the dragged space
+      const allItems = [...list.querySelectorAll('.space-item[data-space-id]')];
+      const orderedIds = allItems
+        .map(el => el.dataset.spaceId)
+        .filter(id => id !== spaceId);
+
+      // Insert at computed position
+      const dropIdx = _spaceDropIndex(list, e.clientY);
+      orderedIds.splice(dropIdx, 0, spaceId);
+
+      await Store.reorderSpaces(orderedIds);
+      if (Render) Render.renderSidebar();
     });
   }
 
@@ -474,6 +584,20 @@ BookmarkBoard.DragDrop = (function () {
     if (collContainer && !collContainer.dataset.ddCollInit) {
       collContainer.dataset.ddCollInit = '1';
       _attachCollectionDropZone(collContainer);
+    }
+
+    // Space reorder: attach drag source to each space item
+    document.querySelectorAll('.space-item[data-space-id]').forEach(item => {
+      if (item.dataset.ddSpaceInit) return;
+      item.dataset.ddSpaceInit = '1';
+      _attachSpaceDrag(item);
+    });
+
+    // Space reorder: attach drop zone to the spaces list
+    const spacesList = document.getElementById('spaces-list');
+    if (spacesList && !spacesList.dataset.ddSpaceInit) {
+      spacesList.dataset.ddSpaceInit = '1';
+      _attachSpaceDropZone(spacesList);
     }
   }
 

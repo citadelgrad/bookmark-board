@@ -682,6 +682,19 @@ a {
   margin: 4px 0;
 }
 
+/* Horizontal placeholder line between spaces during drag */
+.space-drag-placeholder {
+  height: 3px;
+  background: #4db6ac;
+  border-radius: 2px;
+  margin: 2px 8px;
+}
+
+.space-item.dragging {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 /* Collection header drag affordance */
 .collection-header[draggable="true"] {
   cursor: grab;
@@ -1135,6 +1148,54 @@ a {
 
 .import-modal-btn--secondary:hover:not(:disabled) {
   background: #e2e8f0;
+}
+
+/* ── Edit Bookmark Modal ── */
+.edit-bookmark-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edit-bookmark-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.edit-bookmark-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.edit-bookmark-input:focus {
+  border-color: var(--sidebar-accent);
+  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.15);
+}
+
+.edit-bookmark-ref {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.edit-bookmark-ref img {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
 }
 
 /* ── Folder picker (inside import modal) ── */
@@ -1662,8 +1723,8 @@ body.dark .btn-add-collection:hover {
   color: var(--sidebar-text);
   width: 24px;
   height: 24px;
-  font-size: 12px;
-  opacity: 0.5;
+  font-size: 14px;
+  opacity: 0.7;
   transition: opacity 0.15s, background 0.15s;
 }
 
