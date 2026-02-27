@@ -1,0 +1,45 @@
+js/dragdrop.js
+  7504b03ac8f1b1f4 33-35,224-330,588-601
+newtab.css
+  7504b03ac8f1b1f4 685-697,1153-1200
+  7d273402733ad4ab 1726-1727
+js/render.js
+  7504b03ac8f1b1f4 593-693,698-699
+newtab.js
+  7d273402733ad4ab 55
+newtab.html
+  7d273402733ad4ab 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.6",
+  "base_commit_sha": "7ba2769909381a1abae32ecb90951666db0f62ac",
+  "prompts": {
+    "7504b03ac8f1b1f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "06455541-1769-4b86-b3af-087a6c5267f9",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 288,
+      "total_deletions": 52,
+      "accepted_lines": 288,
+      "overriden_lines": 0
+    },
+    "7d273402733ad4ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "47943c14-96fb-4cf6-8264-5e3cd3afee4e",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 4,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
