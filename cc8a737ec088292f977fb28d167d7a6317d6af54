@@ -1,0 +1,23 @@
+js/render.js
+  a9a9677a5d577db1 89-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.6",
+  "base_commit_sha": "cc8a737ec088292f977fb28d167d7a6317d6af54",
+  "prompts": {
+    "a9a9677a5d577db1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ec05b600-337f-44ef-861e-ab09c134aa2d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 0,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
