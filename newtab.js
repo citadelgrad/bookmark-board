@@ -4,7 +4,7 @@
  */
 
 (async function () {
-  const { Store, Render, Import, Backup, Tabs, DragDrop, AI } = BookmarkBoard;
+  const { Store, Render, Import, Backup, Tabs, DragDrop, AI, ScheduledBackup } = BookmarkBoard;
 
   // ─── Loading skeleton ───────────────────────────────────────────────────────
   const container = document.getElementById('collections-container');
@@ -141,6 +141,14 @@
     if (restoreBtn) restoreBtn.addEventListener('click', () => {
       Backup.showRestoreModal(() => Render.getActiveSpaceId());
     });
+  }
+
+  // ─── Schedule button + overdue backup check ────────────────────────────────
+  if (ScheduledBackup) {
+    const scheduleBtn = document.getElementById('btn-schedule');
+    if (scheduleBtn) scheduleBtn.addEventListener('click', () => ScheduledBackup.showSettingsModal());
+    ScheduledBackup.initIndicator();
+    ScheduledBackup.checkAndBackup();
   }
 
   // ─── AI toolbar ────────────────────────────────────────────────────────────

@@ -622,6 +622,32 @@ BookmarkBoard.Render = (function () {
         },
       },
       {
+        label: '\uD83D\uDD17 Edit URL',
+        action: () => {
+          const card = document.querySelector(`.bookmark-card[data-bookmark-id="${bookmark.id}"]`);
+          if (!card) return;
+          const urlEl = card.querySelector('.bookmark-url');
+          if (!urlEl) return;
+          const input = document.createElement('input');
+          input.className = 'bookmark-url-input';
+          input.value = bookmark.url;
+          urlEl.replaceWith(input);
+          input.focus();
+          input.select();
+          const commit = async () => {
+            const val = input.value.trim();
+            if (val) bookmark.url = val;
+            await Store._save();
+            renderCollections(_activeSpaceId);
+          };
+          input.addEventListener('blur', commit);
+          input.addEventListener('keydown', ev => {
+            if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+            if (ev.key === 'Escape') renderCollections(_activeSpaceId);
+          });
+        },
+      },
+      {
         label: '\u{1F4CB} Copy URL',
         action: () => navigator.clipboard.writeText(bookmark.url).catch(() => {}),
       },

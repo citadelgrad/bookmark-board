@@ -16,13 +16,16 @@ BookmarkBoard.Backup = (function () {
    * Serialize current state to JSON and trigger a browser file download.
    * No modal — instant download.
    */
-  function exportData() {
-    const state = Store._state;
-    const wrapper = {
+  function _buildExportPayload() {
+    return {
       version: 1,
       exportedAt: new Date().toISOString(),
-      data: state,
+      data: Store._state,
     };
+  }
+
+  function exportData() {
+    const wrapper = _buildExportPayload();
 
     const json = JSON.stringify(wrapper, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
@@ -248,5 +251,6 @@ BookmarkBoard.Backup = (function () {
   return {
     exportData,
     showRestoreModal,
+    _buildExportPayload,
   };
 })();

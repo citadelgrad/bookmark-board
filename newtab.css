@@ -1751,6 +1751,23 @@ body.dark .btn-add-collection:hover {
 }
 
 /* ===========================
+   Bookmark Card — Inline URL Edit
+   =========================== */
+.bookmark-url-input {
+  font-size: 11px;
+  font-weight: 400;
+  font-family: var(--font);
+  color: var(--text-primary);
+  background: var(--card-bg);
+  border: 1px solid var(--sidebar-accent);
+  border-radius: 4px;
+  padding: 2px 5px;
+  text-align: left;
+  width: 100%;
+  outline: none;
+}
+
+/* ===========================
    Loading Skeleton
    =========================== */
 .skeleton {
@@ -1769,4 +1786,87 @@ body.dark .btn-add-collection:hover {
   height: 44px;
   border-radius: var(--radius-lg);
   margin-bottom: 20px;
+}
+
+/* ===========================
+   Scheduled Backup Modal Form
+   =========================== */
+.schedule-form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.schedule-label {
+  min-width: 70px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.schedule-select,
+.schedule-input {
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--text-primary);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  outline: none;
+}
+.schedule-input--small {
+  width: 60px;
+}
+.schedule-folder-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.schedule-folder-prefix {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding-right: 2px;
+}
+.schedule-suffix {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.schedule-checkbox {
+  margin: 0;
+  cursor: pointer;
+}
+.schedule-mode-details {
+  padding-left: 78px; /* align with fields after label */
+}
+.schedule-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.schedule-pick-btn {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+.schedule-folder-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.schedule-folder-name--set {
+  color: var(--text-primary);
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* Active schedule indicator dot */
+.sidebar-footer-btn.schedule-active .sidebar-footer-icon::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #4caf50;
+  border-radius: 50%;
+  margin-left: 2px;
+  vertical-align: top;
 }

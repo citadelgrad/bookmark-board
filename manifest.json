@@ -3,7 +3,8 @@
   "name": "Bookmark Board",
   "version": "1.0.0",
   "description": "New tab bookmark manager",
-  "permissions": ["bookmarks", "tabs", "storage", "favicon"],
+  "permissions": ["bookmarks", "tabs", "storage", "favicon", "alarms", "downloads"],
+  "background": { "service_worker": "background.js" },
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
