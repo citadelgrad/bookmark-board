@@ -1,0 +1,29 @@
+background.js
+  7d273402733ad4ab 3-11,28,46,50-52,55-67,81,86-88,103,107
+newtab.css
+  7d273402733ad4ab 1839-1860
+newtab.js
+  7d273402733ad4ab 146,151
+js/scheduled-backup.js
+  7d273402733ad4ab 2-13,22-24,35,37,42-84,96-169,172-183,249-251,260-262,267,280-313,333-343,360-364,367,370-378,386-399,408-424,429-430,432,434-446,465
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.5",
+  "base_commit_sha": "60c2f0fbe3ce6197399a424e3a5b3207c1b0e7a1",
+  "prompts": {
+    "7d273402733ad4ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "47943c14-96fb-4cf6-8264-5e3cd3afee4e",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 347,
+      "total_deletions": 86,
+      "accepted_lines": 318,
+      "overriden_lines": 0
+    }
+  }
+}
