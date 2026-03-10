@@ -294,7 +294,7 @@ BookmarkBoard.Render = (function () {
     img.className = 'bookmark-favicon';
     img.loading = 'lazy';
     img.alt = '';
-    img.src = faviconUrl(bookmark.url, 32);
+    img.src = bookmark.favicon || faviconUrl(bookmark.url, 32);
     img.onerror = function () {
       // Try Google's favicon service before falling back to letter avatar
       const gUrl = googleFaviconUrl(bookmark.url, 32);
@@ -550,38 +550,7 @@ BookmarkBoard.Render = (function () {
       },
       {
         label: '\u{1F504} Refresh Icons',
-        action: () => {
-          const section = document.querySelector(`.collection[data-collection-id="${collectionId}"]`);
-          if (!section) return;
-          const col = Store.getCollections(_activeSpaceId).find(c => c.id === collectionId);
-          if (!col) return;
-
-          section.querySelectorAll('.bookmark-card').forEach(card => {
-            const bm = col.bookmarks.find(b => b.id === card.dataset.bookmarkId);
-            if (!bm) return;
-            const gUrl = googleFaviconUrl(bm.url, 32);
-            if (!gUrl) return;
-
-            const domain = _safeDomain(bm.url);
-            const letter = (domain || '?')[0].toUpperCase();
-            const existing = card.querySelector('.bookmark-favicon, .favicon-fallback');
-            if (!existing) return;
-
-            const img = document.createElement('img');
-            img.className = 'bookmark-favicon';
-            img.alt = '';
-            img.src = gUrl;
-            img.onerror = function () {
-              this.onerror = null;
-              const fb = document.createElement('span');
-              fb.className = 'favicon-fallback';
-              fb.style.background = _domainColor(domain);
-              fb.textContent = letter;
-              this.replaceWith(fb);
-            };
-            existing.replaceWith(img);
-          });
-        },
+        action: () => refreshCollectionIcons(collectionId),
       },
       {
         label: '\u{1F5C2}\uFE0F Open all tabs',
@@ -822,6 +791,50 @@ BookmarkBoard.Render = (function () {
     if (existing) existing.remove();
   }
 
+  // ─── Refresh Icons ─────────────────────────────────────────────────────────
+
+  async function refreshCollectionIcons(collectionId) {
+    const col = Store._state.collections.find(c => c.id === collectionId);
+    if (!col) return;
+
+    // Persist Google S2 favicon URLs on each bookmark
+    for (const bm of col.bookmarks) {
+      const gUrl = googleFaviconUrl(bm.url, 32);
+      if (gUrl) {
+        bm.favicon = gUrl;
+      }
+    }
+    await Store._save();
+
+    // Update visible DOM if the collection is rendered
+    const section = document.querySelector(`.collection[data-collection-id="${collectionId}"]`);
+    if (!section) return;
+
+    section.querySelectorAll('.bookmark-card').forEach(card => {
+      const bm = col.bookmarks.find(b => b.id === card.dataset.bookmarkId);
+      if (!bm || !bm.favicon) return;
+
+      const domain = _safeDomain(bm.url);
+      const letter = (domain || '?')[0].toUpperCase();
+      const existing = card.querySelector('.bookmark-favicon, .favicon-fallback');
+      if (!existing) return;
+
+      const img = document.createElement('img');
+      img.className = 'bookmark-favicon';
+      img.alt = '';
+      img.src = bm.favicon;
+      img.onerror = function () {
+        this.onerror = null;
+        const fb = document.createElement('span');
+        fb.className = 'favicon-fallback';
+        fb.style.background = _domainColor(domain);
+        fb.textContent = letter;
+        this.replaceWith(fb);
+      };
+      existing.replaceWith(img);
+    });
+  }
+
   // ─── renderAll ─────────────────────────────────────────────────────────────
 
   function renderAll(activeSpaceId) {
@@ -842,6 +855,7 @@ BookmarkBoard.Render = (function () {
     renderCollections,
     renderTagBar,
     renderSearch,
+    refreshCollectionIcons,
     getActiveSpaceId: () => _activeSpaceId,
   };
 })();

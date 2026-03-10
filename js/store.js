@@ -287,6 +287,15 @@ BookmarkBoard.Store = (function () {
     await _save();
   }
 
+  async function setBookmarkFavicon(collectionId, bookmarkId, faviconUrl) {
+    const collection = _state.collections.find(c => c.id === collectionId);
+    if (!collection) return;
+    const bookmark = collection.bookmarks.find(b => b.id === bookmarkId);
+    if (!bookmark) return;
+    bookmark.favicon = faviconUrl;
+    await _save();
+  }
+
   // ─── Tag CRUD ──────────────────────────────────────────────────────────────
 
   function getTags() {
@@ -336,6 +345,7 @@ BookmarkBoard.Store = (function () {
     removeBookmark,
     moveBookmark,
     reorderBookmarks,
+    setBookmarkFavicon,
     // Tags
     getTags,
     addTag,

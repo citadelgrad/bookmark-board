@@ -1,0 +1,25 @@
+{
+  "name": "bookmark_board",
+  "version": "1.0.0",
+  "description": "A Chrome extension that replaces your New Tab page with a powerful bookmark manager featuring drag-and-drop organization, AI-powered grouping, and open tabs integration.",
+  "main": "background.js",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/citadelgrad/bookmark-board.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/citadelgrad/bookmark-board/issues"
+  },
+  "homepage": "https://github.com/citadelgrad/bookmark-board#readme",
+  "devDependencies": {
+    "jsdom": "^28.1.0",
+    "vitest": "^4.0.18"
+  }
+}
