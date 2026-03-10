@@ -4,6 +4,8 @@ A Chrome extension that replaces your New Tab page with a powerful bookmark mana
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue?logo=googlechrome) ![Manifest V3](https://img.shields.io/badge/Manifest-V3-green) ![License](https://img.shields.io/badge/License-MIT%20%2F%20Apache--2.0-blue)
 
+![Bookmark Board screenshot](demo/screenshot.png)
+
 ## Features
 
 - **Three-panel layout** — spaces/collections sidebar, bookmark grid, and open tabs panel
