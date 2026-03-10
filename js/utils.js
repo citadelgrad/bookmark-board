@@ -49,5 +49,21 @@ BookmarkBoard.utils = (function () {
     };
   }
 
-  return { uid, faviconUrl, debounce };
+  /**
+   * Return a Google S2 favicon URL for a given page URL.
+   * Works for any domain, even ones never visited by the user.
+   * @param {string} pageUrl
+   * @param {number} size
+   * @returns {string}
+   */
+  function googleFaviconUrl(pageUrl, size = 32) {
+    try {
+      const domain = new URL(pageUrl).hostname;
+      return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${size}`;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  return { uid, faviconUrl, googleFaviconUrl, debounce };
 })();
