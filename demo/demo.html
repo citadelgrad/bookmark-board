@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bookmark Board — Demo</title>
+    <link rel="stylesheet" href="../newtab.css" />
+    <style>
+      /* Demo-only: reset banner at top */
+      .demo-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        text-align: center;
+        padding: 6px 16px;
+        font-size: 13px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        z-index: 9999;
+      }
+      .demo-banner button {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.4);
+        color: #fff;
+        padding: 3px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .demo-banner button:hover {
+        background: rgba(255,255,255,0.35);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Demo control banner -->
+    <div class="demo-banner">
+      <span>Bookmark Board — Standalone Demo (no Chrome extension required)</span>
+      <button onclick="localStorage.removeItem('bb_demo_storage'); location.reload();">Reset Demo Data</button>
+    </div>
+
+    <div id="app">
+      <!-- Left sidebar: spaces navigation -->
+      <aside id="sidebar-left" class="sidebar sidebar-left">
+        <div class="sidebar-header">
+          <span class="app-logo">Bookmark Board</span>
+          <button id="btn-theme-toggle" class="theme-toggle-btn" title="Toggle dark mode" aria-label="Toggle dark mode">&#9728;</button>
+          <button id="btn-sidebar-toggle" class="sidebar-collapse-btn" title="Collapse sidebar" aria-label="Toggle sidebar">&#x276E;</button>
+        </div>
+        <nav id="spaces-list" class="spaces-list">
+          <!-- Space items rendered by render.js -->
+        </nav>
+        <div class="sidebar-footer">
+          <button id="btn-add-space" class="sidebar-footer-btn" title="Add space"><span class="sidebar-footer-icon">+</span><span class="sidebar-footer-label">Add Space</span></button>
+          <div class="sidebar-footer-row">
+            <button id="btn-import" class="sidebar-footer-btn" title="Import bookmarks"><span class="sidebar-footer-icon">&#8659;</span><span class="sidebar-footer-label">Import</span></button>
+            <button id="btn-export" class="sidebar-footer-btn" title="Export data"><span class="sidebar-footer-icon">&#8615;</span><span class="sidebar-footer-label">Export</span></button>
+            <button id="btn-restore" class="sidebar-footer-btn" title="Restore from backup"><span class="sidebar-footer-icon">&#8613;</span><span class="sidebar-footer-label">Restore</span></button>
+            <button id="btn-schedule" class="sidebar-footer-btn" title="Scheduled backups"><span class="sidebar-footer-icon">&#9201;</span><span class="sidebar-footer-label">Schedule</span></button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main area: tag bar + search + collections -->
+      <main id="main-area" class="main-area">
+        <div class="main-topbar">
+          <div class="topbar-row">
+            <div id="search-wrapper" class="search-wrapper" style="flex:1">
+              <input id="search-input" class="search-input" type="search"
+                     placeholder="Search bookmarks… (press / to focus)" autocomplete="off" />
+            </div>
+          </div>
+          <div id="tag-bar" class="tag-bar" style="display:none">
+            <!-- Tag filter chips rendered by render.js -->
+          </div>
+        </div>
+        <div id="collections-container" class="collections-container">
+          <!-- Collections rendered by render.js -->
+        </div>
+      </main>
+
+      <!-- Right sidebar: open tabs -->
+      <aside id="sidebar-right" class="sidebar sidebar-right">
+        <div class="sidebar-header">
+          <span class="sidebar-title">Open Tabs</span>
+        </div>
+        <div id="tabs-list" class="tabs-list">
+          <!-- Tab entries rendered by js/tabs.js -->
+        </div>
+      </aside>
+    </div>
+
+    <!-- Mock Chrome APIs (MUST load first) -->
+    <script src="demo-mock.js"></script>
+
+    <!-- Real BookmarkBoard modules (loaded from parent directory) -->
+    <script src="../js/utils.js"></script>
+    <script src="../js/store.js"></script>
+    <script src="../js/bookmarks.js"></script>
+    <script src="../js/tabs.js"></script>
+    <script src="../js/render.js"></script>
+    <script src="../js/import.js"></script>
+    <script src="../js/backup.js"></script>
+    <script src="../js/scheduled-backup.js"></script>
+    <script src="../js/dragdrop.js"></script>
+    <script src="../js/ai-grouping.js"></script>
+    <script src="../newtab.js"></script>
+  </body>
+</html>
