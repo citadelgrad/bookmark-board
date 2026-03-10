@@ -1,0 +1,23 @@
+README.md
+  44bdcd33d800af73 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.9",
+  "base_commit_sha": "b9645ea921f7cc4821b7c737a967842c406af6c3",
+  "prompts": {
+    "44bdcd33d800af73": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c9c9430a-9897-4061-b2c1-4d7e5f72ad50",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
