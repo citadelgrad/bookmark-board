@@ -774,7 +774,19 @@ BookmarkBoard.Render = (function () {
 
   function _positionMenu(menu, anchor) {
     const rect = anchor.getBoundingClientRect();
-    menu.style.top = rect.bottom + 4 + 'px';
+    const menuH = menu.offsetHeight;
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+
+    // Place below anchor if it fits, otherwise above
+    if (menuH <= spaceBelow) {
+      menu.style.top = rect.bottom + 4 + 'px';
+    } else if (menuH <= spaceAbove) {
+      menu.style.top = (rect.top - menuH - 4) + 'px';
+    } else {
+      // Neither fits fully — clamp to bottom of viewport
+      menu.style.top = Math.max(8, window.innerHeight - menuH - 8) + 'px';
+    }
     menu.style.left = Math.min(rect.left, window.innerWidth - 180) + 'px';
 
     const dismiss = e => {
