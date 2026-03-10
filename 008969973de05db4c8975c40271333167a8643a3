@@ -1,0 +1,25 @@
+js/render.js
+  50dc7c933b362cb3 18,299-305,552-585
+js/utils.js
+  50dc7c933b362cb3 52-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.9",
+  "base_commit_sha": "008969973de05db4c8975c40271333167a8643a3",
+  "prompts": {
+    "50dc7c933b362cb3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1d1a551d-c8d2-4f2a-9c5e-fbc9980355f8",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 61,
+      "total_deletions": 4,
+      "accepted_lines": 60,
+      "overriden_lines": 0
+    }
+  }
+}
