@@ -1,0 +1,25 @@
+demo/demo.html
+  92f3fa1f8982700d 1-110
+demo/demo-mock.js
+  92f3fa1f8982700d 1-280
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.9",
+  "base_commit_sha": "d6d502baa60136a2781b71412a472d2541acf7d2",
+  "prompts": {
+    "92f3fa1f8982700d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "30b6deae-4df6-472b-aa15-c8a2f4e10d16",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Scott Nixon <citadelgrad@gmail.com>",
+      "messages": [],
+      "total_additions": 412,
+      "total_deletions": 10,
+      "accepted_lines": 403,
+      "overriden_lines": 0
+    }
+  }
+}
