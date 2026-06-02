@@ -20,6 +20,6 @@
   "homepage": "https://github.com/citadelgrad/bookmark-board#readme",
   "devDependencies": {
     "jsdom": "^28.1.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.0"
   }
 }
