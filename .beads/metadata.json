@@ -1,6 +1,8 @@
 {
   "database": "dolt",
-  "jsonl_export": "issues.jsonl",
   "backend": "dolt",
-  "dolt_database": "beads_bookmark_board"
+  "dolt_mode": "embedded",
+  "dolt_database": "beads_bookmark_board",
+  "project_id": "a7535b27-c6b8-4080-8caa-5e695ebbf2f6",
+  "last_bd_version": "1.0.4"
 }
